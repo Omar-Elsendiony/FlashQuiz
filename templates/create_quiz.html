@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Quiz - FlashQuiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.28.0/feather.min.js"></script>
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-lg">
+        <!-- Navigation content (same as in the main layout) -->
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8">Create a New Quiz</h1>
+        <form id="quiz-form" method="POST" class="space-y-6">
+            <div>
+                <label for="quiz-title" class="block text-sm font-medium text-gray-700">Quiz Title</label>
+                <input type="text" id="quiz-title" name="quiz-title" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+            <div>
+                <label for="quiz-category" class="block text-sm font-medium text-gray-700">Category</label>
+                <select id="quiz-category" name="quiz-category" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="">Select a category</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div id="questions-container" class="space-y-4">
+                <!-- Questions will be added here dynamically -->
+            </div>
+            <div class="flex justify-between">
+                <button type="button" onclick="addQuestion()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Add Question</button>
+                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Create Quiz</button>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        let questionCount = 0;
+
+        function addQuestion() {
+            questionCount++;
+            const container = document.getElementById('questions-container');
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'p-4 border rounded';
+            questionDiv.innerHTML = `
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700">Question Type</label>
+                    <select name="question-type-${questionCount}" onchange="updateQuestionOptions(this)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="mcq">Multiple Choice</option>
+                        <option value="true-false">True/False</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700">Question</label>
+                    <input type="text" name="question-${questionCount}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+                <div class="options-container">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700">Options</label>
+                        <div class="space-y-2">
+                            <input type="text" name="option-${questionCount}-1" placeholder="Option 1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <input type="text" name="option-${questionCount}-2" placeholder="Option 2" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <input type="text" name="option-${questionCount}-3" placeholder="Option 3" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <input type="text" name="option-${questionCount}-4" placeholder="Option 4" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700">Correct Answer</label>
+                        <select name="correct-answer-${questionCount}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="1">Option 1</option>
+                            <option value="2">Option 2</option>
+                            <option value="3">Option 3</option>
+                            <option value="4">Option 4</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="button" onclick="this.parentElement.remove()" class="text-red-600 hover:text-red-800">Remove Question</button>
+            `;
+            container.appendChild(questionDiv);
+        }
+
+        function updateQuestionOptions(select) {
+            const questionDiv = select.closest('.p-4');
+            const optionsContainer = questionDiv.querySelector('.options-container');
+            const questionNumber = select.name.split('-')[2];
+
+            if (select.value === 'true-false') {
+                optionsContainer.innerHTML = `
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700">Correct Answer</label>
+                        <select name="correct-answer-${questionNumber}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="true">True</option>
+                            <option value="false">False</option>
+                        </select>
+                    </div>
+                `;
+            } else {
+                optionsContainer.innerHTML = `
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700">Options</label>
+                        <div class="space-y-2">
+                            <input type="text" name="option-${questionNumber}-1" placeholder="Option 1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <input type="text" name="option-${questionNumber}-2" placeholder="Option 2" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <input type="text" name="option-${questionNumber}-3" placeholder="Option 3" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <input type="text" name="option-${questionNumber}-4" placeholder="Option 4" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700">Correct Answer</label>
+                        <select name="correct-answer-${questionNumber}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="1">Option 1</option>
+                            <option value="2">Option 2</option>
+                            <option value="3">Option 3</option>
+                            <option value="4">Option 4</option>
+                        </select>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
