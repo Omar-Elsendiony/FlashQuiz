@@ -1,28 +1,48 @@
 {% extends "base.html" %}
+
+{% block head %}
+{% endblock %}
+
 {% block content %}
 
-<main class="max-w-7xl mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-8">Create a New Quiz</h1>
-    <form id="quiz-form" method="POST" class="space-y-6">
-        <div>
-            <label for="quiz-title" class="block text-sm font-medium text-gray-700">Quiz Title</label>
-            <input type="text" id="quiz-title" name="quiz-title" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+<main class="max-w-7xl mx-auto px-4 py-8 flex flex-col justify-center items-center min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50">
+    <h1 class="text-4xl font-bold mb-8 text-indigo-600 tracking-tight">Create a New Quiz</h1>
+    <form id="quiz-form" method="POST" class="space-y-8 w-full max-w-3xl">
+        <div class="transition-all duration-200 hover:transform hover:scale-[1.02]">
+            <label for="quiz-title" class="block text-sm font-semibold text-indigo-700 mb-2">Quiz Title</label>
+            <input type="text" id="quiz-title" name="quiz-title" required 
+                class="mt-1 block w-full rounded-lg border-2 border-indigo-200 shadow-sm 
+                focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50 
+                px-4 py-3 transition-all duration-200">
         </div>
-        <div>
-            <label for="quiz-category" class="block text-sm font-medium text-gray-700">Category</label>
-            <select id="quiz-category" name="quiz-category" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+        <div class="transition-all duration-200 hover:transform hover:scale-[1.02]">
+            <label for="quiz-category" class="block text-sm font-semibold text-indigo-700 mb-2">Category</label>
+            <select id="quiz-category" name="quiz-category" required 
+                class="mt-1 block w-full rounded-lg border-2 border-indigo-200 shadow-sm 
+                focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50 
+                px-4 py-3 transition-all duration-200">
                 <option value="">Select a category</option>
                 {% for category in categories %}
                 <option value="{{ category.id }}">{{ category.name }}</option>
                 {% endfor %}
             </select>
         </div>
-        <div id="questions-container" class="space-y-4">
+        <div id="questions-container" class="space-y-6">
             <!-- Questions will be added here dynamically -->
         </div>
-        <div class="flex justify-between">
-            <button type="button" onclick="addQuestion()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Add Question</button>
-            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Create Quiz</button>
+        <div class="flex justify-between pt-4">
+            <button type="button" onclick="addQuestion()" 
+                class="bg-emerald-500 text-white px-6 py-3 rounded-lg font-semibold
+                hover:bg-emerald-600 transform hover:scale-105 transition-all duration-200
+                shadow-md hover:shadow-lg">
+                Add Question
+            </button>
+            <button type="submit" 
+                class="bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold
+                hover:bg-indigo-700 transform hover:scale-105 transition-all duration-200
+                shadow-md hover:shadow-lg">
+                Create Quiz
+            </button>
         </div>
     </form>
 </main>
@@ -34,32 +54,53 @@
         questionCount++;
         const container = document.getElementById('questions-container');
         const questionDiv = document.createElement('div');
-        questionDiv.className = 'p-4 border rounded';
+        questionDiv.className = 'p-6 border-2 border-indigo-200 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 bg-white';
         questionDiv.innerHTML = `
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Question Type</label>
-                <select name="question-type-${questionCount}" onchange="updateQuestionOptions(this)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <label class="block text-sm font-semibold text-indigo-700 mb-2">Question Type</label>
+                <select name="question-type-${questionCount}" onchange="updateQuestionOptions(this)" 
+                    class="mt-1 block w-full rounded-lg border-2 border-indigo-200 shadow-sm 
+                    focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50 
+                    px-4 py-3 transition-all duration-200">
                     <option value="mcq">Multiple Choice</option>
                     <option value="true-false">True/False</option>
                 </select>
             </div>
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Question</label>
-                <input type="text" name="question-${questionCount}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <label class="block text-sm font-semibold text-indigo-700 mb-2">Question</label>
+                <input type="text" name="question-${questionCount}" required 
+                    class="mt-1 block w-full rounded-lg border-2 border-indigo-200 shadow-sm 
+                    focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50 
+                    px-4 py-3 transition-all duration-200">
             </div>
             <div class="options-container">
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Options</label>
-                    <div class="space-y-2">
-                        <input type="text" name="option-${questionCount}-1" placeholder="Option 1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <input type="text" name="option-${questionCount}-2" placeholder="Option 2" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <input type="text" name="option-${questionCount}-3" placeholder="Option 3" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <input type="text" name="option-${questionCount}-4" placeholder="Option 4" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <label class="block text-sm font-semibold text-indigo-700 mb-2">Options</label>
+                    <div class="space-y-3">
+                        <input type="text" name="option-${questionCount}-1" placeholder="Option 1" required 
+                            class="mt-1 block w-full rounded-lg border-2 border-indigo-200 shadow-sm 
+                            focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50 
+                            px-4 py-3 transition-all duration-200">
+                        <input type="text" name="option-${questionCount}-2" placeholder="Option 2" required 
+                            class="mt-1 block w-full rounded-lg border-2 border-indigo-200 shadow-sm 
+                            focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50 
+                            px-4 py-3 transition-all duration-200">
+                        <input type="text" name="option-${questionCount}-3" placeholder="Option 3" required 
+                            class="mt-1 block w-full rounded-lg border-2 border-indigo-200 shadow-sm 
+                            focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50 
+                            px-4 py-3 transition-all duration-200">
+                        <input type="text" name="option-${questionCount}-4" placeholder="Option 4" required 
+                            class="mt-1 block w-full rounded-lg border-2 border-indigo-200 shadow-sm 
+                            focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50 
+                            px-4 py-3 transition-all duration-200">
                     </div>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Correct Answer</label>
-                    <select name="correct-answer-${questionCount}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <label class="block text-sm font-semibold text-indigo-700 mb-2">Correct Answer</label>
+                    <select name="correct-answer-${questionCount}" required 
+                        class="mt-1 block w-full rounded-lg border-2 border-indigo-200 shadow-sm 
+                        focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50 
+                        px-4 py-3 transition-all duration-200">
                         <option value="1">Option 1</option>
                         <option value="2">Option 2</option>
                         <option value="3">Option 3</option>
@@ -67,21 +108,31 @@
                     </select>
                 </div>
             </div>
-            <button type="button" onclick="this.parentElement.remove()" class="text-red-600 hover:text-red-800">Remove Question</button>
+            <button type="button" onclick="this.parentElement.remove()" 
+                class="text-red-600 hover:text-red-800 font-semibold flex items-center gap-2 px-4 py-2 rounded-lg
+                hover:bg-red-50 transition-all duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                Remove Question
+            </button>
         `;
         container.appendChild(questionDiv);
     }
 
     function updateQuestionOptions(select) {
-        const questionDiv = select.closest('.p-4');
+        const questionDiv = select.closest('.p-6');
         const optionsContainer = questionDiv.querySelector('.options-container');
         const questionNumber = select.name.split('-')[2];
 
         if (select.value === 'true-false') {
             optionsContainer.innerHTML = `
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Correct Answer</label>
-                    <select name="correct-answer-${questionNumber}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <label class="block text-sm font-semibold text-indigo-700 mb-2">Correct Answer</label>
+                    <select name="correct-answer-${questionNumber}" required 
+                        class="mt-1 block w-full rounded-lg border-2 border-indigo-200 shadow-sm 
+                        focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50 
+                        px-4 py-3 transition-all duration-200">
                         <option value="true">True</option>
                         <option value="false">False</option>
                     </select>
@@ -90,17 +141,32 @@
         } else {
             optionsContainer.innerHTML = `
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Options</label>
-                    <div class="space-y-2">
-                        <input type="text" name="option-${questionNumber}-1" placeholder="Option 1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <input type="text" name="option-${questionNumber}-2" placeholder="Option 2" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <input type="text" name="option-${questionNumber}-3" placeholder="Option 3" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <input type="text" name="option-${questionNumber}-4" placeholder="Option 4" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <label class="block text-sm font-semibold text-indigo-700 mb-2">Options</label>
+                    <div class="space-y-3">
+                        <input type="text" name="option-${questionNumber}-1" placeholder="Option 1" required 
+                            class="mt-1 block w-full rounded-lg border-2 border-indigo-200 shadow-sm 
+                            focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50 
+                            px-4 py-3 transition-all duration-200">
+                        <input type="text" name="option-${questionNumber}-2" placeholder="Option 2" required 
+                            class="mt-1 block w-full rounded-lg border-2 border-indigo-200 shadow-sm 
+                            focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50 
+                            px-4 py-3 transition-all duration-200">
+                        <input type="text" name="option-${questionNumber}-3" placeholder="Option 3" required 
+                            class="mt-1 block w-full rounded-lg border-2 border-indigo-200 shadow-sm 
+                            focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50 
+                            px-4 py-3 transition-all duration-200">
+                        <input type="text" name="option-${questionNumber}-4" placeholder="Option 4" required 
+                            class="mt-1 block w-full rounded-lg border-2 border-indigo-200 shadow-sm 
+                            focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50 
+                            px-4 py-3 transition-all duration-200">
                     </div>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700">Correct Answer</label>
-                    <select name="correct-answer-${questionNumber}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <label class="block text-sm font-semibold text-indigo-700 mb-2">Correct Answer</label>
+                    <select name="correct-answer-${questionNumber}" required 
+                        class="mt-1 block w-full rounded-lg border-2 border-indigo-200 shadow-sm 
+                        focus:border-indigo-500 focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-50 
+                        px-4 py-3 transition-all duration-200">
                         <option value="1">Option 1</option>
                         <option value="2">Option 2</option>
                         <option value="3">Option 3</option>

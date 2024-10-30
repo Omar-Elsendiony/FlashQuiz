@@ -45,6 +45,16 @@ app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 # cors = CORS(app, resources={r"/*": {"origins": "0.0.0.0"}})
 cors = CORS(app)
 
+# Initialize Flask Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    """Load user by ID."""
+    return User.query.get(int(user_id))
 
 
 @app.teardown_appcontext
@@ -128,10 +138,13 @@ def create_quiz():
     return render_template('create_quiz.html', categories=categories)
 
 
+
+
+
 if __name__ == "__main__":
     """ Main Function """
-    host = environ.get('MATHS_API_HOST')
-    port = environ.get('MATHS_API_PORT')
+    host = environ.get('FLASH_QUIZ_API_HOST')
+    port = environ.get('FLASH_QUIZ_API_PORT')
     # login_manager = LoginManager()
     # login_manager.login_view = 'auth.login'
     # login_manager.init_app(app)
