@@ -22,44 +22,115 @@
             height: 80px;
         }
 
-        .menu-list{
+        /* Desktop submenu styling */
+        .menu-item:hover .desktop-submenu {
+            display: block;
+        }
+
+        .menu-icons{
+            font-size: 1.3rem;
+            padding: 35px 20px;
+        }
+
+        .desktop-submenu {
+            display: none;
+            position: absolute;
             background-color: aliceblue;
+            top: 200%;
+            left: 0;
+            padding: 10px;
+            min-width: 150px;
+            z-index: 10;
         }
+
+        .desktop-submenu a {
+            display: block;
+            padding: 8px 16px;
+            color: var(--primary-blue);
+        }
+
+        .desktop-submenu a:hover {
+            background-color: var(--light-blue);
+        }
+        
+
+        /* Mobile styling */
+        .menu-list{
+            position: absolute;
+            background-color: aliceblue;
+            padding: 10px;
+            top: 200%;
+            right: 0;
+        }
+
         .menu-list li {
-        list-style: none;
+            list-style: none;
         }
+
         .menu-list li a {
             display: block;
             padding: 10px 20px;
         }
+
         .menu-list li a:hover {
             background-color: var(--light-blue);
         }
-    </style>
 
-    {% block header_block %}{% endblock %}
+        .menu-sub-list {
+            display: none;
+            background-color: aliceblue;
+        }
+
+        .menu-sub-list li {
+            list-style: none;
+        }
+
+        .menu-sub-list li a {
+            padding: 10px 40px;
+        }
+
+        .menu-list li:hover .menu-sub-list {
+            display: block;
+        }
+    </style>
 
 </head>
 <body class="bg-gray-50">
     <nav class="bg-white shadow-lg">
         <div class="max-w-7xl mx-auto">
-            <div class="flex justify-between items-center py-4 px-4" style="position: relative;">
+            <div class="flex justify-between items-center py-1 px-1 relative">
                 <div class="flex items-center">
-                    <img src="flashquiz-logo.png" alt="FlashQuiz" class="logo">
+                    <img src="{{ url_for('static', filename='images/flashquiz-logo.png')}}" alt="FlashQuiz" class="logo">
                 </div>
-                <div class="hidden md:flex items-center space-x-4">
-                    <a href="#" class="text-gray-600 hover:text-gray-900">Home</a>
-                    <a href="#" class="text-gray-600 hover:text-gray-900">Create Quiz</a>
-                    <a href="#" class="text-gray-600 hover:text-gray-900">Create Flashcards</a>
-                    <a href="#" class="text-gray-600 hover:text-gray-900">View Flashcards</a>
-                    <a href="#" class="text-gray-600 hover:text-gray-900">Solve Quizzes</a>
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-4 relative">
+                    <div class="menu-item relative">
+                        <a href="#" class="menu-icons text-gray-600 hover:text-gray-900">Home</a>
+                    </div>
+                    <div class="menu-item relative">
+                        <a href="#" class="menu-icons text-gray-600 hover:text-gray-900">Quizzes</a>
+                        <div class="desktop-submenu">
+                            <a href="#">Create Quiz</a>
+                            <a href="#">View Quiz</a>
+                        </div>
+                    </div>
+                    <div class="menu-item relative">
+                        <a href="#" class="menu-icons text-gray-600 hover:text-gray-900">Flashcards</a>
+                        <div class="desktop-submenu">
+                            <a href="#">Create Flashcards</a>
+                            <a href="#">View Flashcards</a>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Mobile Menu Toggle -->
                 <div class="md:hidden flex items-center">
                     <button id="menu-button" class="text-gray-600 hover:text-gray-900 focus:outline-none">
                         <i data-feather="menu"></i>
                     </button>
                 </div>
-                <div id="mobile-menu" class="hidden flex-col space-y-2 mt-4" style="position: absolute; top:97px; right:0px">
+                <!-- Mobile Menu -->
+                <div id="mobile-menu" class="hidden flex-col space-y-2 mt-4 absolute top-16 right-0">
                     <ul class="menu-list">
                         <li><a href="#" class="text-gray-600 hover:text-gray-900">Home</a></li>
                         <li>
@@ -69,20 +140,22 @@
                                 <li><a href="#" class="text-gray-600 hover:text-gray-900">View Quiz</a></li>
                             </ul>
                         </li>
-                        <li><a href="#" class="text-gray-600 hover:text-gray-900">Create Flashcards</a></li>
+                        <li>
+                            <a href="#" class="text-gray-600 hover:text-gray-900">Flashcards</a>
+                            <ul class="menu-sub-list">
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">Create Flashcards</a></li>
+                                <li><a href="#" class="text-gray-600 hover:text-gray-900">View Flashcards</a></li>
+                            </ul>
+                        </li>
                         <li><a href="#" class="text-gray-600 hover:text-gray-900">View Flashcards</a></li>
                     </ul>
                 </div>
 
                 <script>
-                    document.getElementById('menu-button').addEventListener('click', function() {
-                        var menu = document.getElementById('mobile-menu');
-                        if (menu.classList.contains('hidden')) {
-                            menu.classList.remove('hidden');
-                        } else {
-                            menu.classList.add('hidden');
-                        }
-                    });
+                    const menuButton = document.getElementById('menu-button');
+                    const menu = document.getElementById('mobile-menu');
+                
+                    menuButton.addEventListener('click', () => menu.classList.toggle('hidden'));
                 </script>
 
             </div>
@@ -91,15 +164,11 @@
 
     {% block content %}{% endblock %}
 
-    <footer class="bg-gray-800 text-white py-8">
+    <footer class="bg-gray-500 text-white py-8">
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex flex-wrap justify-between">
                 <div class="w-full md:w-1/3 mb-6 md:mb-0">
-                    <svg class="logo" viewBox="0 0 40 40">
-                        <rect width="40" height="40" rx="8" fill="white"/>
-                        <path d="M10 20 L20 10 L30 20 L20 30 Z" fill="#1a365d"/>
-                        <circle cx="20" cy="20" r="4" fill="#3b82f6"/>
-                    </svg>
+                    <img src="{{ url_for('static', filename='images/flashquiz-logo-no-background.png')}}" alt="FlashQuiz" class="logo">
                     <p class="mt-4">Making learning interactive and effective</p>
                 </div>
                 <div class="w-full md:w-1/3">
