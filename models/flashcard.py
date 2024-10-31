@@ -13,9 +13,12 @@ class Flashcard(BaseModel, Base):
     view_count = Column(Integer, default=0)
     
     creator_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    creator = relationship('User', backref='flashcards-created')
+    # creator = relationship('User', backref='flashcards-created')
     
     category_id = Column(Integer, ForeignKey('category.id'), nullable=False)
     category = relationship('Category', backref='flashcards-category')
     
-    favorited_by = relationship('User', secondary='user_favorite_flashcards', backref='favorited_by_flashcards')
+    favorited_by = relationship('User', 
+                                secondary='user_favorite_flashcards', 
+                                back_populates='favorited_flashcards',
+                                overlaps="favorited_by")

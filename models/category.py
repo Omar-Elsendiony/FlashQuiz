@@ -13,5 +13,5 @@ class Category(BaseModel, Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(50), unique=True, nullable=False)
     
-    quizzes = relationship('Quiz', backref='category-quiz')
-    flashcards = relationship('Flashcard', backref='category-flashcard')
+    # quizzes = relationship('Quiz', backref='category-quiz')
+    # flashcards = relationship('Flashcard', backref='category-flashcard')

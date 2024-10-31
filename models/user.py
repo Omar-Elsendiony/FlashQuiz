@@ -16,8 +16,14 @@ class User(BaseModel, Base):
     
     quizzes = relationship('Quiz', backref='creator-quiz')
     flashcards = relationship('Flashcard', backref='creator-flashcard')
-    favorite_quizzes = relationship('Quiz', secondary='user_favorite_quizzes', backref='favorited_by-quizzes')
-    favorite_flashcards = relationship('Flashcard', secondary='user_favorite_flashcards', backref='favorited_by-flashcards')
+
+    favorited_quizzes = relationship('Quiz', 
+                                    secondary='user_favorite_quizzes', 
+                                    back_populates='favorited_by')
+    
+    favorited_flashcards = relationship('Flashcard', 
+                                        secondary='user_favorite_flashcards', 
+                                        back_populates='favorited_by')
 
     def is_authenticated(self):
         return True
@@ -39,13 +45,13 @@ class User(BaseModel, Base):
 
 # Association tables for many-to-many relationships
 user_favorite_quizzes = Table('user_favorite_quizzes',
-                              Base.metadata,
+                            Base.metadata,
     Column('user_id', Integer, ForeignKey('user.id'), primary_key=True),
     Column('quiz_id', Integer, ForeignKey('quiz.id'), primary_key=True)
 )
 
 user_favorite_flashcards = Table('user_favorite_flashcards',
-                                 Base.metadata,
+                                Base.metadata,
     Column('user_id', Integer, ForeignKey('user.id'), primary_key=True),
     Column('flashcard_id', Integer, ForeignKey('flashcard.id'), primary_key=True)
 )
