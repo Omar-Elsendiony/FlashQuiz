@@ -11,5 +11,5 @@ class Option(BaseModel, Base):
     is_correct = Column(Boolean, default=False)
     
     question_id = Column(Integer, ForeignKey('question.id'), nullable=False)
-    question = relationship('Question', backref='options-question')
+    # question = relationship('Question', backref='options-question')
 

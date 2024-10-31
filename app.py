@@ -110,7 +110,7 @@ def create_quiz():
         category_id = request.form['quiz-category']
         
         quiz = Quiz(title=title, creator=current_user, category_id=category_id)
-        db.session.add(quiz)
+        db.new(quiz)
         
         for i in range(1, len(request.form) // 5 + 1):  # Assuming each question has 5 form fields
             question_text = request.form[f'question-{i}']
@@ -180,41 +180,42 @@ def sign_up():
         # Input validation
         if not username or not email or not password:
             flash('All fields are required', 'error')
-            return redirect(url_for('signup'))
+            return redirect(url_for('sign_up'))
 
         if password != confirm_password:
             flash('Passwords do not match', 'error')
-            return redirect(url_for('signup'))
+            return redirect(url_for('sign_up'))
 
         # Check if user already exists
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
             flash('Username already exists', 'error')
-            return redirect(url_for('signup'))
+            return redirect(url_for('sign_up'))
 
         existing_email = User.query.filter_by(email=email).first()
+        print(existing_email)
         if existing_email:
             flash('Email already registered', 'error')
-            return redirect(url_for('signup'))
+            return redirect(url_for('sign_up'))
 
         # Create new user
         new_user = User(
-            username=username,
-            email=email,
-            password_hash=generate_password_hash(password, method='scrypt')
+            username = username,
+            email = email,
+            password = password
         )
 
         try:
-            db.session.add(new_user)
-            db.session.commit()
+            db.new(new_user)
+            db.save()
             flash('Registration successful! Please login.', 'success')
             return redirect(url_for('login'))
         except Exception as e:
-            db.session.rollback()
+            # db.session.rollback()
             flash('An error occurred during registration', 'error')
-            return redirect(url_for('signup'))
+            return redirect(url_for('sign_up'))
 
-    return render_template('signup.html')
+    return render_template('sign_up.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

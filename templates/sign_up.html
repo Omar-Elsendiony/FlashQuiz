@@ -208,6 +208,7 @@
         align-items: center;
         height: 100vh;
         background-color: white;
+        overflow-x: hidden;
     }
 </style>
 {% endblock %}
@@ -231,8 +232,8 @@
             <h1>Start your journey</h1>
             <form id="signup-form">
                 <div class="input-group">
-                    <input type="text" id="name" placeholder=" " required />
-                    <label for="name">Full Name</label>
+                    <input type="text" id="username" placeholder=" " required />
+                    <label for="username">Username</label>
                 </div>
                 <div class="input-group">
                     <input type="email" id="email" placeholder=" " required />
@@ -264,13 +265,40 @@
             var successMessage = document.getElementById('success-message')
             button.textContent = 'Joining...'
             button.disabled = true
-            setTimeout(function() {
+            /*setTimeout(function() {
                 document.querySelector('.form-section').style.transform = 'translateX(100%)'
                 document.querySelector('.form-section').style.transition = 'transform 1s ease-in-out'
                 document.querySelector('.image-section').style.transform = 'translateX(30%)'
                 document.querySelector('.image-section').style.transition = 'transform 1s ease-in-out'
                 successMessage.style.opacity = '1'
-            }, 1500)
+            }, 1500)*/
+            var formData = new FormData();
+            formData.append('username', username);
+            formData.append('email', email);
+            formData.append('password', password);
+            formData.append('confirm_password', confirmPassword);
+            
+            // Make API request
+            fetch('/sign_up', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(result => {
+                // If successful, animate the transition
+                document.querySelector('.form-section').style.transform = 'translateX(100%)';
+                document.querySelector('.form-section').style.transition = 'transform 1s ease-in-out';
+                document.querySelector('.image-section').style.transform = 'translateX(30%)';
+                document.querySelector('.image-section').style.transition = 'transform 1s ease-in-out';
+                successMessage.style.opacity = '1';
+            })
+            .catch(error => {
+                // Handle any errors
+                console.error('Error:', error);
+                alert('An error occurred during registration. Please try again.');
+                button.textContent = 'Sign Up';
+                button.disabled = false;
+            });
         })
     </script>
 </main>

@@ -16,6 +16,6 @@ class Quiz(BaseModel, Base):
     category_id = Column(Integer, ForeignKey('category.id'), nullable=False)
     category = relationship('Category', backref='quiz-category')
     
-    questions = relationship('Question', backref='quiz-question', cascade='all, delete-orphan')
+    questions = relationship('Question', backref='quiz-questions', cascade='all, delete-orphan')
     favorited_by = relationship('User', secondary='user_favorite_quizzes', backref='favorited_by_quizzes')
 

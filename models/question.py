@@ -12,7 +12,7 @@ class Question(BaseModel, Base):
     question_type = Column(String(20), nullable=False)  # 'mcq' or 'true-false'
     
     quiz_id = Column(Integer, ForeignKey('quiz.id'), nullable=False)
-    quiz = relationship('Quiz', backref='questions-quiz')
+    # quiz = relationship('Quiz', backref='questions-quiz')
     
     options = relationship('Option', backref='question-options', cascade='all, delete-orphan')
 

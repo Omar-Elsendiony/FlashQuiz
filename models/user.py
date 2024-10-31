@@ -4,7 +4,7 @@ from os import getenv
 import sqlalchemy
 from sqlalchemy import Column, String, ForeignKey, Integer, Boolean, Table
 from sqlalchemy.orm import relationship
-
+from hashlib import md5
 
 
 class User(BaseModel, Base):
@@ -30,6 +30,12 @@ class User(BaseModel, Base):
 
     def get_id(self):
         return str(self.id)
+    
+    def __setattr__(self, name, value):
+        """sets a password with md5 encryption"""
+        if name == "password":
+            value = md5(value.encode()).hexdigest()
+        super().__setattr__(name, value)
 
 # Association tables for many-to-many relationships
 user_favorite_quizzes = Table('user_favorite_quizzes',
