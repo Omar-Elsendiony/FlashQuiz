@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+    @media screen and (max-width: 1000px) {
+        .image-section {
+            display: none;
+        }
+
+        .form-section {
+            width: 100% !important;
+        }
+
+    }
+    
+    .container {
+        max-width: none;
+    }
+    body,
+    html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: 'Poppins', sans-serif;
+        /* background-color: #f0f4f8; */
+        color: #34495e;
+        /* overflow: hidden; */
+    }
+
+    .container {
+        display: flex;
+        height: 100%;
+    }
+
+    .form-section {
+        width: 40%;
+        background-color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        box-sizing: border-box;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .image-section {
+        width: 60%;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+    }
+
+    .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        /* background-color: rgba(52, 152, 219, 0.2); */
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        color: #2c3e50;
+    }
+
+    form {
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .input-group {
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    input {
+        width: 100%;
+        padding: 0.8rem;
+        background-color: #f0f4f8;
+        border: none;
+        border-radius: 5px;
+        color: #34495e;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    input:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px #3498db;
+    }
+
+    label {
+        position: absolute;
+        left: 0.8rem;
+        top: 0.8rem;
+        transition: all 0.3s ease;
+        pointer-events: none;
+        color: #7f8c8d;
+    }
+
+    input:focus+label,
+    input:not(:placeholder-shown)+label {
+        top: -1.2rem;
+        left: 0;
+        font-size: 0.8rem;
+        color: #3498db;
+    }
+
+    button {
+        width: 100%;
+        padding: 1rem;
+        background-color: #3498db;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    button:hover {
+        background-color: #2980b9;
+    }
+
+    .success-message {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        color: #ffffff;
+        background-color: rgba(52, 152, 219, 0.9);
+        padding: 2rem;
+        border-radius: 10px;
+    }
+
+    .floating-shape {
+        position: absolute;
+        /* opacity: 0.1; */
+        background-color: #3498db;
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .logo-sign-up {
+        position: absolute;
+        top: 28%;
+        left: 33%;
+        transform: translate(-250%, -250%);
+        width: 300px;
+        height: 300px;
+    }
+
+    @keyframes float {
+        0% {
+            transform: translateY(0px);
+        }
+
+        50% {
+            transform: translateY(-20px);
+        }
+
+        100% {
+            transform: translateY(0px);
+        }
+    }
+
+    .shape1 {
+        top: 10%;
+        left: 10%;
+        width: 100px;
+        height: 100px;
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    }
+
+    .shape2 {
+        top: 80%;
+        right: 10%;
+        width: 80px;
+        height: 80px;
+        border-radius: 80% 20% 32% 68% / 58% 22% 78% 42%;
+    }
+
+    .shape3 {
+        bottom: 5%;
+        left: 20%;
+        width: 120px;
+        height: 120px;
+        border-radius: 25% 75% 51% 49% / 54% 30% 70% 46%;
+    }
+
+    main{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main>
+    <div class="container">
+        <div class="image-section">
+            <div class="overlay"></div>
+            <div class="floating-shape shape1"></div>
+            <div class="floating-shape shape2"></div>
+            <div class="floating-shape shape3"></div>
+            <img class="floating-shape logo-sign-up" src="{{ url_for('static', filename='images/flashquiz-logo.png')}}" />
+            <div id="success-message" class="success-message">
+                <h2>Welcome aboard!</h2>
+                <p>Your journey with us begins now.</p>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h1>Start your journey</h1>
+            <form id="signup-form">
+                <div class="input-group">
+                    <input type="text" id="name" placeholder=" " required />
+                    <label for="name">Full Name</label>
+                </div>
+                <div class="input-group">
+                    <input type="email" id="email" placeholder=" " required />
+                    <label for="email">Email Address</label>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="password" placeholder=" " required />
+                    <label for="password">Password</label>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="confirm-password" placeholder=" " required />
+                    <label for="confirm-password">Confirm Password</label>
+                </div>
+                <button type="submit">Sign Up</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('signup-form').addEventListener('submit', function(e) {
+            e.preventDefault()
+            var password = document.getElementById('password').value
+            var confirmPassword = document.getElementById('confirm-password').value
+            if (password !== confirmPassword) {
+                alert("Passwords don't match. Please try again.")
+                return
+            }
+            var button = this.querySelector('button')
+            var successMessage = document.getElementById('success-message')
+            button.textContent = 'Joining...'
+            button.disabled = true
+            setTimeout(function() {
+                document.querySelector('.form-section').style.transform = 'translateX(100%)'
+                document.querySelector('.form-section').style.transition = 'transform 1s ease-in-out'
+                document.querySelector('.image-section').style.transform = 'translateX(30%)'
+                document.querySelector('.image-section').style.transition = 'transform 1s ease-in-out'
+                successMessage.style.opacity = '1'
+            }, 1500)
+        })
+    </script>
+</main>
+{% endblock %}

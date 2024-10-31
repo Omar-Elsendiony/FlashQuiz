@@ -19,6 +19,17 @@ class User(BaseModel, Base):
     favorite_quizzes = relationship('Quiz', secondary='user_favorite_quizzes', backref='favorited_by-quizzes')
     favorite_flashcards = relationship('Flashcard', secondary='user_favorite_flashcards', backref='favorited_by-flashcards')
 
+    def is_authenticated(self):
+        return True
+
+    def is_active(self):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return str(self.id)
 
 # Association tables for many-to-many relationships
 user_favorite_quizzes = Table('user_favorite_quizzes',
