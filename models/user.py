@@ -46,13 +46,13 @@ class User(BaseModel, Base):
 # Association tables for many-to-many relationships
 user_favorite_quizzes = Table('user_favorite_quizzes',
                             Base.metadata,
-    Column('user_id', Integer, ForeignKey('user.id'), primary_key=True),
-    Column('quiz_id', Integer, ForeignKey('quiz.id'), primary_key=True)
+    Column('user_id', String(60), ForeignKey('user.id'), primary_key=True),
+    Column('quiz_id', String(60), ForeignKey('quiz.id'), primary_key=True)
 )
 
 user_favorite_flashcards = Table('user_favorite_flashcards',
                                 Base.metadata,
-    Column('user_id', Integer, ForeignKey('user.id'), primary_key=True),
-    Column('flashcard_id', Integer, ForeignKey('flashcard.id'), primary_key=True)
+    Column('user_id', String(60), ForeignKey('user.id'), primary_key=True),
+    Column('flashcard_id', String(60), ForeignKey('flashcard.id'), primary_key=True)
 )
 

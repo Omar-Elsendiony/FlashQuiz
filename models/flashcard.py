@@ -12,10 +12,9 @@ class Flashcard(BaseModel, Base):
     back = Column(String(255), nullable=False)
     view_count = Column(Integer, default=0)
     
-    creator_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    creator_id = Column(String(60), ForeignKey('user.id'), nullable=False)
     # creator = relationship('User', backref='flashcards-created')
-    
-    category_id = Column(Integer, ForeignKey('category.id'), nullable=False)
+    category_id = Column(String(60), ForeignKey('category.id'), nullable=False)
     category = relationship('Category', backref='flashcards-category')
     
     favorited_by = relationship('User', 

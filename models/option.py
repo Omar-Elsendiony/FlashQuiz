@@ -10,6 +10,6 @@ class Option(BaseModel, Base):
     text = Column(String(255), nullable=False)
     is_correct = Column(Boolean, default=False)
     
-    question_id = Column(Integer, ForeignKey('question.id'), nullable=False)
+    question_id = Column(String(60), ForeignKey('question.id'), nullable=False)
     # question = relationship('Question', backref='options-question')
 

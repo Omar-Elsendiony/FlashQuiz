@@ -8,8 +8,6 @@
         box-sizing: border-box;
     }
 
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
-
     @media screen and (max-width: 1000px) {
         .image-section {
             display: none;
@@ -18,24 +16,20 @@
         .form-section {
             width: 100% !important;
         }
-
     }
     
-
     body,
     html {
         margin: 0;
         padding: 0;
         height: 100%;
         font-family: 'Poppins', sans-serif;
-        /* background-color: #f0f4f8; */
         color: #34495e;
-        /* overflow: hidden; */
     }
 
     .container {
         display: flex;
-        height: 100%;
+        height: 100vh;
         max-width: none;
     }
 
@@ -64,7 +58,6 @@
         left: 0;
         right: 0;
         bottom: 0;
-        /* background-color: rgba(52, 152, 219, 0.2); */
     }
 
     h1 {
@@ -117,6 +110,21 @@
         color: #3498db;
     }
 
+    /* New styles for Remember Me checkbox */
+    .remember-me {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+        position: relative;
+    }
+
+    .remember-me input[type="checkbox"] {
+        width: auto;
+        margin-right: 0.5rem;
+        cursor: pointer;
+    }
+
     button {
         width: 100%;
         padding: 1rem;
@@ -133,28 +141,30 @@
         background-color: #2980b9;
     }
 
-    .success-message {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+    .form-footer {
+        width: 100%;
+        max-width: 400px;
         text-align: center;
-        opacity: 0;
-        transition: opacity 0.5s ease;
-        color: #ffffff;
-        background-color: rgba(52, 152, 219, 0.9);
-        padding: 2rem;
-        border-radius: 10px;
+        margin-top: 1rem;
+    }
+
+    .form-footer a {
+        color: #3498db;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .form-footer a:hover {
+        color: #2980b9;
     }
 
     .floating-shape {
         position: absolute;
-        /* opacity: 0.1; */
         background-color: #3498db;
         animation: float 6s ease-in-out infinite;
     }
 
-    .logo-sign-up {
+    .logo-sign-in {
         position: absolute;
         top: 28%;
         left: 33%;
@@ -164,17 +174,9 @@
     }
 
     @keyframes float {
-        0% {
-            transform: translateY(0px);
-        }
-
-        50% {
-            transform: translateY(-20px);
-        }
-
-        100% {
-            transform: translateY(0px);
-        }
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+        100% { transform: translateY(0px); }
     }
 
     .shape1 {
@@ -201,14 +203,11 @@
         border-radius: 25% 75% 51% 49% / 54% 30% 70% 46%;
     }
 
-    main{
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
+    main {
         background-color: white;
         overflow-x: hidden;
     }
+
 </style>
 {% endblock %}
 
@@ -220,95 +219,71 @@
             <div class="floating-shape shape1"></div>
             <div class="floating-shape shape2"></div>
             <div class="floating-shape shape3"></div>
-            <img class="floating-shape logo-sign-up" src="{{ url_for('static', filename='images/flashquiz-logo.png')}}" />
-            <div id="success-message" class="success-message">
-                <h2>Welcome aboard!</h2>
-                <p>Your journey with us begins now.</p>
-            </div>
+            <img class="floating-shape logo-sign-in" src="{{ url_for('static', filename='images/flashquiz-logo.png')}}" />
         </div>
 
         <div class="form-section">
-            <h1>Start your journey</h1>
-            <div class="flash-messages">
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }}">{{ message }}</div>
-                        {% endfor %}
-                {% endif %}
-                {% endwith %}
-            </div>
-
-            <form id="signup-form">
+            <h1>Welcome Back</h1>
+            <form id="login-form">
                 <div class="input-group">
-                    <input type="text" id="username" placeholder=" " required />
+                    <input type="text" id="username" name="username" placeholder=" " required />
                     <label for="username">Username</label>
                 </div>
                 <div class="input-group">
-                    <input type="email" id="email" placeholder=" " required />
-                    <label for="email">Email Address</label>
-                </div>
-                <div class="input-group">
-                    <input type="password" id="password" placeholder=" " required />
+                    <input type="password" id="password" name="password" placeholder=" " required />
                     <label for="password">Password</label>
                 </div>
-                <div class="input-group">
-                    <input type="password" id="confirm-password" placeholder=" " required />
-                    <label for="confirm-password">Confirm Password</label>
+                <!-- <div class="remember-me">
+                    <input type="checkbox" id="remember" name="remember" />
+                    <label for="remember">Remember Me</label>
+                </div> -->
+                <button type="submit">Log In</button>
+                <div class="form-footer">
+                    <p>Don't have an account? <a href="{{ url_for('sign_up') }}">Sign Up</a></p>
+                    <p><a href="{{ url_for('forgot_password') }}">Forgot Password?</a></p>
                 </div>
-                <button type="submit">Sign Up</button>
             </form>
         </div>
     </div>
 
     <script>
-        document.getElementById('signup-form').addEventListener('submit', function(e) {
-            e.preventDefault()
-            var password = document.getElementById('password').value
-            var confirmPassword = document.getElementById('confirm-password').value
-            if (password !== confirmPassword) {
-                alert("Passwords don't match. Please try again.")
-                return
-            }
-            var button = this.querySelector('button')
-            var successMessage = document.getElementById('success-message')
-            // button.textContent = 'Joining...'
-            // button.disabled = true
-            /*setTimeout(function() {
-                document.querySelector('.form-section').style.transform = 'translateX(100%)'
-                document.querySelector('.form-section').style.transition = 'transform 1s ease-in-out'
-                document.querySelector('.image-section').style.transform = 'translateX(30%)'
-                document.querySelector('.image-section').style.transition = 'transform 1s ease-in-out'
-                successMessage.style.opacity = '1'
-            }, 1500)*/
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            var username = document.getElementById('username').value;
+            var password = document.getElementById('password').value;
+            /* var remember = document.getElementById('remember').checked; */
+            var button = this.querySelector('button');
+
+            // button.textContent = 'Logging in...';
+            // button.disabled = true;
+
             var formData = new FormData();
             formData.append('username', username);
-            formData.append('email', email);
             formData.append('password', password);
-            formData.append('confirm_password', confirmPassword);
+            // formData.append('remember', remember);
             
-            // Make API request
-            fetch('/sign_up', {
+            fetch('/login', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.text())
+            .then(response => response.json())
             .then(result => {
-                // If successful, animate the transition
-                /*document.querySelector('.form-section').style.transform = 'translateX(100%)';
-                document.querySelector('.form-section').style.transition = 'transform 1s ease-in-out';
-                document.querySelector('.image-section').style.transform = 'translateX(30%)';
-                document.querySelector('.image-section').style.transition = 'transform 1s ease-in-out';
-                successMessage.style.opacity = '1';*/
+                if (result.success) {
+                    window.location.href = result.redirect_url;
+                } else {
+                    alert(result.message || 'Login failed');
+                    button.textContent = 'Log In';
+                    // button.disabled = false;
+                }
             })
             .catch(error => {
-                // Handle any errors
                 console.error('Error:', error);
-                alert('An error occurred during registration. Please try again.');
-                button.textContent = 'Sign Up';
+                alert('An error occurred during login. Please try again.');
+                button.textContent = 'Log In';
                 // button.disabled = false;
             });
-        })
+        });
     </script>
 </main>
 {% endblock %}

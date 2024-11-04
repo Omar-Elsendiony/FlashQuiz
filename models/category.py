@@ -10,7 +10,7 @@ from sqlalchemy.orm import relationship
 class Category(BaseModel, Base):
     __tablename__ = 'category'
     
-    id = Column(Integer, primary_key=True)
+    # id = Column(Integer, primary_key=True)
     name = Column(String(50), unique=True, nullable=False)
     
     # quizzes = relationship('Quiz', backref='category-quiz')
