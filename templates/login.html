@@ -208,6 +208,7 @@
         overflow-x: hidden;
     }
 
+
 </style>
 {% endblock %}
 
@@ -224,6 +225,17 @@
 
         <div class="form-section">
             <h1>Welcome Back</h1>
+            <div class="flash-messages">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="flash-message {{ category }}" role="alert">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </div>
             <form id="login-form">
                 <div class="input-group">
                     <input type="text" id="username" name="username" placeholder=" " required />
@@ -252,16 +264,38 @@
             
             var username = document.getElementById('username').value;
             var password = document.getElementById('password').value;
-            /* var remember = document.getElementById('remember').checked; */
             var button = this.querySelector('button');
-
-            // button.textContent = 'Logging in...';
-            // button.disabled = true;
-
+            const flashMessagesContainer = document.querySelector('.flash-messages');
+        
+            // Clear existing flash messages
+            flashMessagesContainer.innerHTML = '';
+        
+            // Button loading state
+            button.textContent = 'Logging in...';
+            button.disabled = true;
+        
             var formData = new FormData();
             formData.append('username', username);
             formData.append('password', password);
-            // formData.append('remember', remember);
+            
+            // Function to create and handle flash message
+            function createFlashMessage(message, type) {
+                const flashDiv = document.createElement('div');
+                flashDiv.className = `flash-message ${type}`;
+                flashDiv.textContent = message;
+                flashMessagesContainer.appendChild(flashDiv);
+        
+                // Don't auto-remove success messages before redirect
+                if (type !== 'success') {
+                    setTimeout(() => {
+                        if (flashDiv.parentNode) {
+                            flashDiv.style.opacity = '0';
+                            flashDiv.style.transition = 'opacity 0.5s ease';
+                            setTimeout(() => flashDiv.remove(), 500);
+                        }
+                    }, 5000);
+                }
+            }
             
             fetch('/login', {
                 method: 'POST',
@@ -270,18 +304,38 @@
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    window.location.href = result.redirect_url;
+                    createFlashMessage('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = result.redirect_url;
+                    }, 1000);
                 } else {
-                    alert(result.message || 'Login failed');
+                    createFlashMessage(result.message || 'Login failed', 'error');
+                    // Reset button state
                     button.textContent = 'Log In';
-                    // button.disabled = false;
+                    button.disabled = false;
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred during login. Please try again.');
+                createFlashMessage(error);
+                
+                // Reset button state
                 button.textContent = 'Log In';
-                // button.disabled = false;
+                button.disabled = false;
+            });
+        });
+        
+        // Handle existing flash messages from server
+        document.addEventListener('DOMContentLoaded', function() {
+            const existingFlashMessages = document.querySelectorAll('.flash-message');
+            existingFlashMessages.forEach(flashDiv => {
+                setTimeout(() => {
+                    if (flashDiv.parentNode) {
+                        flashDiv.style.opacity = '0';
+                        flashDiv.style.transition = 'opacity 0.5s ease';
+                        setTimeout(() => flashDiv.remove(), 500);
+                    }
+                }, 5000);
             });
         });
     </script>

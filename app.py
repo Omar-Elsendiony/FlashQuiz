@@ -54,7 +54,7 @@ login_manager.login_view = 'login'
 @login_manager.user_loader
 def load_user(user_id):
     """Load user by ID."""
-    return User.query.get(int(user_id))
+    return User.query.get(user_id)
 
 
 @app.teardown_appcontext
@@ -101,7 +101,7 @@ def index():
 
 
 # @login_required
-@app.route('/create-quiz', methods=['GET', 'POST'])
+@app.route('/create_quiz', methods=['GET', 'POST'])
 def create_quiz():
     categories = Category.query.all()
     
@@ -109,7 +109,7 @@ def create_quiz():
         title = request.form['quiz-title']
         category_id = request.form['quiz-category']
         
-        quiz = Quiz(title=title, creator=current_user, category_id=category_id)
+        quiz = Quiz(title=title, creator_id=current_user.get_id(), category_id=category_id)
         db.new(quiz)
         
         for i in range(1, len(request.form) // 5 + 1):  # Assuming each question has 5 form fields
@@ -117,44 +117,40 @@ def create_quiz():
             question_type = request.form[f'question-type-{i}']
             
             question = Question(text=question_text, question_type=question_type, quiz=quiz)
-            db.session.add(question)
+            db.new(question)
+            db.save()
             
             if question_type == 'mcq':
                 for j in range(1, 5):
                     option_text = request.form[f'option-{i}-{j}']
                     is_correct = request.form[f'correct-answer-{i}'] == str(j)
                     option = Option(text=option_text, is_correct=is_correct, question=question)
-                    db.session.add(option)
+                    db.new(option)
             elif question_type == 'true-false':
                 correct_answer = request.form[f'correct-answer-{i}']
                 true_option = Option(text='True', is_correct=(correct_answer == 'true'), question=question)
                 false_option = Option(text='False', is_correct=(correct_answer == 'false'), question=question)
-                db.session.add_all([true_option, false_option])
+                db.new(true_option)
+                db.new(false_option)
         
-        db.session.commit()
+        db.save()
         flash('Quiz created successfully!', 'success')
         return redirect(url_for('view_quiz', quiz_id=quiz.id))
     
     return render_template('create_quiz.html', categories=categories)
-
-
-@app.route('/view_quiz/<int:quiz_id>', methods=['GET'])
-def view_quiz():
-    return render_template('create_quiz.html')
 
 @app.route('/view_quizzes', methods=['GET'])
 def view_quizzes():
     quizzes = Quiz.query.all()
     return render_template('view_quizzes.html', quizzes=quizzes)
 
+@app.route('/view_quiz/<int:quiz_id>', methods=['GET'])
+def view_quiz():
+    return render_template('create_quiz.html')
 
-@app.route('/view_flashcards', methods=['GET'])
-def view_flashcards():
-    flashcards = Flashcard.query.all()
-    return render_template('view_flashcards.html', flashcards=flashcards)
 
-@app.route('/create-flashcard', methods=['GET', 'POST'])
-def create_flashcard():
+@app.route('/create_flashcards', methods=['GET', 'POST'])
+def create_flashcards():
     if request.method == 'POST':
         question = request.form['question']
         answer = request.form['answer']
@@ -167,6 +163,10 @@ def create_flashcard():
     
     return render_template('create_flashcard.html')
 
+@app.route('/view_flashcards', methods=['GET'])
+def view_flashcards():
+    flashcards = Flashcard.query.all()
+    return render_template('view_flashcards.html', flashcards=flashcards)
 
 
 @app.route('/sign_up', methods=['GET', 'POST'])
@@ -179,42 +179,56 @@ def sign_up():
 
         # Input validation
         if not username or not email or not password:
-            flash('All fields are required', 'error')
-            return redirect(url_for('sign_up'))
+            return jsonify({
+                'success': False,
+                'message': 'All fields are required'
+            }), 400
 
         if password != confirm_password:
-            flash('Passwords do not match', 'error')
-            return redirect(url_for('sign_up'))
+            return jsonify({
+                'success': False,
+                'message': 'Passwords do not match'
+            }), 400
 
         # Check if user already exists
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
-            flash('Username already exists', 'error')
-            return redirect(url_for('sign_up'))
+            return jsonify({
+                'success': False,
+                'message': 'Username already exists'
+            }), 409  # 409 Conflict
 
         existing_email = User.query.filter_by(email=email).first()
-        print(existing_email)
         if existing_email:
-            flash('Email already registered', 'error')
-            return redirect(url_for('sign_up'))
+            return jsonify({
+                'success': False,
+                'message': 'Email already registered'
+            }), 409  # 409 Conflict
 
         # Create new user
         new_user = User(
-            username = username,
-            email = email,
-            password = password
+            username=username,
+            email=email,
+            password=password
         )
 
         try:
             db.new(new_user)
             db.save()
-            flash('Registration successful! Please login.', 'success')
-            return redirect(url_for('login'))
+            return jsonify({
+                'success': True,
+                'message': 'Registration successful! Please login.',
+                'redirect_url': url_for('login')
+            }), 201  # 201 Created
+            
         except Exception as e:
-            # db.session.rollback()
-            flash('An error occurred during registration', 'error')
-            return redirect(url_for('sign_up'))
+            # Log the error here if you have logging set up
+            return jsonify({
+                'success': False,
+                'message': 'An error occurred during registration'
+            }), 500  # 500 Internal Server Error
 
+    # GET request - render the signup page
     return render_template('sign_up.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -229,17 +243,35 @@ def login():
 
         user = User.query.filter_by(username=username).first()
 
-        if not user or not check_password_hash(user.password_hash, password):
-            flash('Please check your login details and try again.', 'error')
-            return redirect(url_for('login'))
-
+        if not user:
+            return jsonify({
+                'success': False,
+                'message': 'User not found'
+            })
+        
+        passwd = md5(password.encode()).hexdigest()
+        userRegistered = storage.get_attribute("User", ["username", "password"], [username, passwd])
+        if (userRegistered == []):
+            return jsonify({
+                'success': False,
+                'message': 'Password is wrong'
+            })
+        
+        # if not check_password_hash(user.password_hash, password):
+        #     return jsonify({
+        #         'success': False,
+        #         'message': 'Password is wrong'
+        #     })
+        
         login_user(user, remember=remember)
         next_page = request.args.get('next')
-        return redirect(next_page if next_page else url_for('index'))
+        redirect_url = next_page if next_page else url_for('index')
+        return jsonify({
+            'success': True,
+            'redirect_url': redirect_url
+        })
 
     return render_template('login.html')
-
-
 
 @app.route('/logout')
 @login_required

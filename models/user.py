@@ -5,14 +5,14 @@ import sqlalchemy
 from sqlalchemy import Column, String, ForeignKey, Integer, Boolean, Table
 from sqlalchemy.orm import relationship
 from hashlib import md5
+from flask_login import UserMixin
 
-
-class User(BaseModel, Base):
+class User(BaseModel, Base, UserMixin):
     __tablename__ = 'user'
     # id = Column(Integer, primary_key=True)
     username = Column(String(80), unique=True, nullable=False)
     email = Column(String(120), unique=True, nullable=False)
-    password_hash = Column(String(128))
+    password = Column(String(128))
     
     quizzes = relationship('Quiz', backref='creator-quiz')
     flashcards = relationship('Flashcard', backref='creator-flashcard')
