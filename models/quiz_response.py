@@ -3,6 +3,9 @@ from sqlalchemy import Column, String, ForeignKey, Integer, Boolean, Table
 from sqlalchemy.orm import relationship
 
 class QuizResponse(BaseModel, Base):
+    __tablename__ = 'quiz_response'
+
+    
     attempt_id = Column(String(60), ForeignKey('quiz_attempt.id'), nullable=False)
     question_id = Column(String(60), ForeignKey('question.id'), nullable=False)
     submitted_answer = Column(String(255), nullable=False)

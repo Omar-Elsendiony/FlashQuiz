@@ -8,7 +8,10 @@ from models.category import Category
 from models.quiz import Quiz
 from models.question import Question
 from models.option import Option
-# from models.review import Review
+from models.quiz_attempt import QuizAttempt
+from models.quiz_response import QuizResponse
+# from models.user_quiz_stats import UserQuizStats
+
 
 #################### flask imports ###########################################################
 # import requests
@@ -116,7 +119,7 @@ def create_quiz():
             question_text = request.form[f'question-{i}']
             question_type = request.form[f'question-type-{i}']
             
-            question = Question(text=question_text, question_type=question_type, quiz=quiz)
+            question = Question(text=question_text, question_type=question_type, quiz_id=quiz.id)
             db.new(question)
             db.save()
             
@@ -124,12 +127,12 @@ def create_quiz():
                 for j in range(1, 5):
                     option_text = request.form[f'option-{i}-{j}']
                     is_correct = request.form[f'correct-answer-{i}'] == str(j)
-                    option = Option(text=option_text, is_correct=is_correct, question=question)
+                    option = Option(text=option_text, is_correct=is_correct, question_id=question.id)
                     db.new(option)
             elif question_type == 'true-false':
                 correct_answer = request.form[f'correct-answer-{i}']
-                true_option = Option(text='True', is_correct=(correct_answer == 'true'), question=question)
-                false_option = Option(text='False', is_correct=(correct_answer == 'false'), question=question)
+                true_option = Option(text='True', is_correct=(correct_answer == 'true'), question_id=question.id)
+                false_option = Option(text='False', is_correct=(correct_answer == 'false'), question_id=question.id)
                 db.new(true_option)
                 db.new(false_option)
         
@@ -137,7 +140,6 @@ def create_quiz():
         flash('Quiz created successfully!', 'success')
         return redirect(url_for('index'))
         # return redirect(url_for('view_quiz', quiz_id=quiz.id))
-        
     
     return render_template('create_quiz.html', categories=categories)
 
@@ -158,17 +160,24 @@ def view_quiz():
 
 @app.route('/take-quiz/<quiz_id>', methods=['GET'])
 def take_quiz(quiz_id):
-    quiz = Quiz.query.get_or_404(quiz_id)
-    return render_template('take_quiz.html', quiz=quiz)
+    quiz = storage.get_attribute("Quiz", ["id"], [quiz_id])[0]
+    questions = storage.get_attribute("Question", ["quiz_id"], [quiz.id])
+    options = []
+    for question in questions:
+        question.options = storage.get_attribute("Option", ["question_id"], [question.id])
+        # options.append(question.options)
+    # options = storage.get_attribute("Option", ["question_id"], [questions[0].id])
+    
+    return render_template('take_quiz.html', quiz=quiz, questions=questions)
 
 @app.route('/submit-quiz/<quiz_id>', methods=['POST'])
 def submit_quiz(quiz_id):
     try:
         # Get the quiz
-        quiz = Quiz.query.get_or_404(quiz_id)
-        
+        quiz = storage.get_attribute("Quiz", ["id"], [quiz_id])
+        questions = storage.get_attribute("Question", ["quiz_id"], [quiz_id])
         # Get current user
-        current_user_id = session.get('user_id')  # Adjust based on your auth system
+        current_user_id = current_user.get_id()  # Adjust based on your auth system
         if not current_user_id:
             return jsonify({
                 'success': False,
@@ -184,7 +193,7 @@ def submit_quiz(quiz_id):
             }), 400
 
         # Calculate score
-        total_questions = len(quiz.questions)
+        total_questions = len(questions)
         correct_answers = 0
         question_results = []
 
@@ -226,8 +235,8 @@ def submit_quiz(quiz_id):
             total_questions=total_questions,
             correct_answers=correct_answers
         )
-        db.session.add(attempt)
-        db.session.flush()  # Get attempt.id without committing
+        db.new(attempt)
+        # db.session.flush()  # Get attempt.id without committing
 
         # Store individual question responses
         for result in question_results:
@@ -237,54 +246,39 @@ def submit_quiz(quiz_id):
                 submitted_answer=result['submitted_answer'],
                 is_correct=result['is_correct']
             )
-            db.session.add(response)
+            db.new(response)
 
-        # Update user statistics
-        user_stats = UserQuizStats.query.filter_by(
-            user_id=current_user_id,
-            quiz_id=quiz.id
-        ).first()
+        # # Update user statistics
+        # user_stats = UserQuizStats.query.filter_by(
+        #     user_id=current_user_id,
+        #     quiz_id=quiz.id
+        # ).first()
 
-        if user_stats:
-            # Update existing stats
-            user_stats.attempts_count += 1
-            user_stats.total_score += score_percentage
-            user_stats.average_score = user_stats.total_score / user_stats.attempts_count
-            if score_percentage > user_stats.highest_score:
-                user_stats.highest_score = score_percentage
-                user_stats.best_attempt_id = attempt.id
-        else:
-            # Create new stats record
-            user_stats = UserQuizStats(
-                user_id=current_user_id,
-                quiz_id=quiz.id,
-                attempts_count=1,
-                total_score=score_percentage,
-                average_score=score_percentage,
-                highest_score=score_percentage,
-                best_attempt_id=attempt.id
-            )
-            db.session.add(user_stats)
+        # if user_stats:
+        #     # Update existing stats
+        #     user_stats.attempts_count += 1
+        #     user_stats.total_score += score_percentage
+        #     user_stats.average_score = user_stats.total_score / user_stats.attempts_count
+        #     if score_percentage > user_stats.highest_score:
+        #         user_stats.highest_score = score_percentage
+        #         user_stats.best_attempt_id = attempt.id
+        # else:
+        #     # Create new stats record
+        #     user_stats = UserQuizStats(
+        #         user_id=current_user_id,
+        #         quiz_id=quiz.id,
+        #         attempts_count=1,
+        #         total_score=score_percentage,
+        #         average_score=score_percentage,
+        #         highest_score=score_percentage,
+        #         best_attempt_id=attempt.id
+        #     )
+        #     db.session.add(user_stats)
 
-        # Check for achievements
-        if score_percentage == 100:
-            achievement = Achievement.query.filter_by(
-                user_id=current_user_id,
-                quiz_id=quiz.id,
-                type='perfect_score'
-            ).first()
-            
-            if not achievement:
-                achievement = Achievement(
-                    user_id=current_user_id,
-                    quiz_id=quiz.id,
-                    type='perfect_score',
-                    earned_at=datetime.utcnow()
-                )
-                db.session.add(achievement)
+
 
         # Commit all changes
-        db.session.commit()
+        db.save()
 
         return jsonify({
             'success': True,
@@ -295,7 +289,7 @@ def submit_quiz(quiz_id):
         })
 
     except Exception as e:
-        db.session.rollback()
+        # db.session.rollback()
         print(f"Error submitting quiz: {str(e)}")  # Log the error
         return jsonify({
             'success': False,

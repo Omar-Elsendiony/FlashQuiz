@@ -7,7 +7,7 @@
 
 <main class="max-w-7xl mx-auto px-4 py-8 flex flex-col justify-center items-center min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50">
     <h1 class="text-4xl font-bold mb-8 text-indigo-600 tracking-tight">Create a New Quiz</h1>
-    <form id="quiz-form" method="POST" class="space-y-8 w-full max-w-3xl">
+    <form id="quiz-form" method="POST" onsubmit="return validateQuizForm(event)" class="space-y-8 w-full max-w-3xl">
         <div class="transition-all duration-200 hover:transform hover:scale-[1.02]">
             <label for="quiz-title" class="block text-sm font-semibold text-indigo-700 mb-2">Quiz Title</label>
             <input type="text" id="quiz-title" name="quiz-title" required 
@@ -37,7 +37,7 @@
                 shadow-md hover:shadow-lg">
                 Add Question
             </button>
-            <button type="submit" 
+            <button type="submit"
                 class="bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold
                 hover:bg-indigo-700 transform hover:scale-105 transition-all duration-200
                 shadow-md hover:shadow-lg">
@@ -49,6 +49,48 @@
 
 <script>
     let questionCount = 0;
+
+    function validateQuizForm(event) {
+        event.preventDefault()
+        const title = document.getElementById('quiz-title').value;
+        const category = document.getElementById('quiz-category').value;
+        if (!title || !category) {
+            alert('Please fill out all fields.');
+            return false;
+        }
+        if (questionCount == 0) {
+            alert('Please add at least one question.');
+            return false;
+        }
+        // If validation passes, submit the form
+        const form = document.getElementById('quiz-form');
+        
+        // Create formData object
+        const formData = new FormData(form);
+        
+        // Submit form using fetch
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Redirect to index page after successful submission
+                window.location.href = '/';
+            } else {
+                alert('There was an error submitting the quiz. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('There was an error submitting the quiz. Please try again.');
+        });
+
+        return false;
+    }
 
     function addQuestion() {
         questionCount++;
@@ -108,7 +150,7 @@
                     </select>
                 </div>
             </div>
-            <button type="button" onclick="this.parentElement.remove()" 
+            <button type="button" onclick="decrementQuestionCount() && this.parentElement.remove()" 
                 class="text-red-600 hover:text-red-800 font-semibold flex items-center gap-2 px-4 py-2 rounded-lg
                 hover:bg-red-50 transition-all duration-200">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -175,6 +217,11 @@
                 </div>
             `;
         }
+    }
+
+    function decrementQuestionCount() {
+        questionCount--;
+        return true;
     }
 </script>
     

@@ -16,7 +16,9 @@ class Quiz(BaseModel, Base):
     
     category = relationship('Category', backref='quiz-category')
     questions = relationship('Question', backref='quiz-questions', cascade='all, delete-orphan')
-    
+    attempts = relationship('QuizAttempt', back_populates='quiz')
+
+
     favorited_by = relationship('User',
                                 secondary='user_favorite_quizzes', 
                                 back_populates='favorited_quizzes',

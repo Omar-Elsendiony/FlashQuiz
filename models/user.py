@@ -16,6 +16,7 @@ class User(BaseModel, Base, UserMixin):
     
     quizzes = relationship('Quiz', backref='creator-quiz')
     flashcards = relationship('Flashcard', backref='creator-flashcard')
+    quiz_attempts = relationship('QuizAttempt', back_populates='user')
 
     favorited_quizzes = relationship('Quiz', 
                                     secondary='user_favorite_quizzes', 
