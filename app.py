@@ -296,6 +296,30 @@ def submit_quiz(quiz_id):
             'message': 'An error occurred while submitting the quiz'
         }), 500
 
+@app.route('/quiz_results/<attempt_id>', methods=['GET'])
+def view_quiz_attempts(attempt_id):
+    attempt = QuizAttempt.query.get(attempt_id)
+    if not attempt:
+        return jsonify({
+            'status': 'error',
+            'message': 'Attempt not found',
+            'redirect': url_for('index')
+        }), 404
+
+    if attempt.user_id != current_user.get_id():
+        return jsonify({
+            'status': 'error',
+            'message': 'You are not authorized to view this attempt',
+            'redirect': url_for('index')
+        }), 403
+
+    quiz = Quiz.query.get(attempt.quiz_id)
+    responses = QuizResponse.query.filter_by(attempt_id=attempt_id).all()
+    questions = {response.question_id: response for response in responses}
+    
+    # For success case, render the template as before
+    return render_template('quiz_results.html', quiz=quiz, attempt=attempt, questions=questions)
+
 
 @app.route('/create_flashcards', methods=['GET', 'POST'])
 def create_flashcards():
