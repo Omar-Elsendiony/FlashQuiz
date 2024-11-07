@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}View Quizzes{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="mb-4">All Quizzes</h1>
+
+    {% if quizzes %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for quiz in quizzes %}
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ quiz.title }}</h5>
+                    <p class="card-text">
+                        Created by: {{ quiz.creator.username }}
+                        <br>
+                        Category: {{ quiz.category.name }}
+                    </p>
+                    <div class="d-flex justify-content-end">
+                        <a href="{{ url_for('take_quiz', quiz_id=quiz.id) }}" class="btn btn-primary">Take Quiz</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">No quizzes available yet.</div>
+    {% endif %}
+</div>
+{% endblock %}

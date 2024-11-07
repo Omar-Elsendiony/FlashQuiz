@@ -135,18 +135,172 @@ def create_quiz():
         
         db.save()
         flash('Quiz created successfully!', 'success')
-        return redirect(url_for('view_quiz', quiz_id=quiz.id))
+        return redirect(url_for('index'))
+        # return redirect(url_for('view_quiz', quiz_id=quiz.id))
+        
     
     return render_template('create_quiz.html', categories=categories)
+
 
 @app.route('/view_quizzes', methods=['GET'])
 def view_quizzes():
     quizzes = Quiz.query.all()
+    for quiz in quizzes:
+        creatorQuiz = storage.get_attribute("User", ["id"], [quiz.creator_id])
+        quiz.creator = creatorQuiz[0]
     return render_template('view_quizzes.html', quizzes=quizzes)
 
-@app.route('/view_quiz/<int:quiz_id>', methods=['GET'])
+
+@app.route('/view_quiz/<quiz_id>', methods=['GET'])
 def view_quiz():
     return render_template('create_quiz.html')
+
+
+@app.route('/take-quiz/<quiz_id>', methods=['GET'])
+def take_quiz(quiz_id):
+    quiz = Quiz.query.get_or_404(quiz_id)
+    return render_template('take_quiz.html', quiz=quiz)
+
+@app.route('/submit-quiz/<quiz_id>', methods=['POST'])
+def submit_quiz(quiz_id):
+    try:
+        # Get the quiz
+        quiz = Quiz.query.get_or_404(quiz_id)
+        
+        # Get current user
+        current_user_id = session.get('user_id')  # Adjust based on your auth system
+        if not current_user_id:
+            return jsonify({
+                'success': False,
+                'message': 'User must be logged in to submit quiz'
+            }), 401
+
+        # Get submitted answers
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'message': 'No answers submitted'
+            }), 400
+
+        # Calculate score
+        total_questions = len(quiz.questions)
+        correct_answers = 0
+        question_results = []
+
+        for question in quiz.questions:
+            submitted_answer = data.get(str(question.id))
+            if submitted_answer is None:
+                return jsonify({
+                    'success': False,
+                    'message': f'Missing answer for question {question.id}'
+                }), 400
+
+            # Check if answer is correct
+            is_correct = False
+            if question.type == 'true-false':
+                is_correct = str(submitted_answer).lower() == str(question.correct_answer).lower()
+            else:
+                is_correct = str(submitted_answer) == str(question.correct_answer)
+
+            if is_correct:
+                correct_answers += 1
+
+            # Store individual question results
+            question_results.append({
+                'question_id': question.id,
+                'submitted_answer': submitted_answer,
+                'correct_answer': question.correct_answer,
+                'is_correct': is_correct
+            })
+
+        # Calculate percentage score
+        score_percentage = (correct_answers / total_questions) * 100 if total_questions > 0 else 0
+
+        # Create quiz attempt record
+        attempt = QuizAttempt(
+            quiz_id=quiz.id,
+            user_id=current_user_id,
+            score=score_percentage,
+            completed_at=datetime.utcnow(),
+            total_questions=total_questions,
+            correct_answers=correct_answers
+        )
+        db.session.add(attempt)
+        db.session.flush()  # Get attempt.id without committing
+
+        # Store individual question responses
+        for result in question_results:
+            response = QuizResponse(
+                attempt_id=attempt.id,
+                question_id=result['question_id'],
+                submitted_answer=result['submitted_answer'],
+                is_correct=result['is_correct']
+            )
+            db.session.add(response)
+
+        # Update user statistics
+        user_stats = UserQuizStats.query.filter_by(
+            user_id=current_user_id,
+            quiz_id=quiz.id
+        ).first()
+
+        if user_stats:
+            # Update existing stats
+            user_stats.attempts_count += 1
+            user_stats.total_score += score_percentage
+            user_stats.average_score = user_stats.total_score / user_stats.attempts_count
+            if score_percentage > user_stats.highest_score:
+                user_stats.highest_score = score_percentage
+                user_stats.best_attempt_id = attempt.id
+        else:
+            # Create new stats record
+            user_stats = UserQuizStats(
+                user_id=current_user_id,
+                quiz_id=quiz.id,
+                attempts_count=1,
+                total_score=score_percentage,
+                average_score=score_percentage,
+                highest_score=score_percentage,
+                best_attempt_id=attempt.id
+            )
+            db.session.add(user_stats)
+
+        # Check for achievements
+        if score_percentage == 100:
+            achievement = Achievement.query.filter_by(
+                user_id=current_user_id,
+                quiz_id=quiz.id,
+                type='perfect_score'
+            ).first()
+            
+            if not achievement:
+                achievement = Achievement(
+                    user_id=current_user_id,
+                    quiz_id=quiz.id,
+                    type='perfect_score',
+                    earned_at=datetime.utcnow()
+                )
+                db.session.add(achievement)
+
+        # Commit all changes
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'attempt_id': attempt.id,
+            'score': score_percentage,
+            'correct_answers': correct_answers,
+            'total_questions': total_questions
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error submitting quiz: {str(e)}")  # Log the error
+        return jsonify({
+            'success': False,
+            'message': 'An error occurred while submitting the quiz'
+        }), 500
 
 
 @app.route('/create_flashcards', methods=['GET', 'POST'])
