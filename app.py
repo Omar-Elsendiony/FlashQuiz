@@ -303,9 +303,10 @@ def view_quiz_attempts(attempt_id):
     return render_template('quiz_results.html', quiz=quiz, attempt=attempt, questions=questions)
 
 
-@app.route('/create_flashcards', methods=['GET', 'POST'])
-def create_flashcards():
+@app.route('/create_decks', methods=['GET', 'POST'])
+def create_decks():
     if request.method == 'POST':
+        category_id = request.form['quiz-category']
         question = request.form['question']
         answer = request.form['answer']
         
@@ -315,12 +316,30 @@ def create_flashcards():
         flash('Flashcard created successfully!', 'success')
         return redirect(url_for('view_flashcards'))
     
-    return render_template('create_flashcard.html')
+    categories = Category.query.all()
 
-@app.route('/view_flashcards', methods=['GET'])
-def view_flashcards():
-    flashcards = Flashcard.query.all()
+    return render_template('create_flashcards.html', categories=categories)
+
+
+@app.route('/study_deck/<quiz_id>', methods=['GET'])
+def take_quiz(quiz_id):
+    quiz = storage.get_attribute("Quiz", ["id"], [quiz_id])[0]
+    questions = storage.get_attribute("Question", ["quiz_id"], [quiz.id])
+    # options = []
+    for question in questions:
+        question.options = storage.get_attribute("Option", ["question_id"], [question.id])
+        # options.append(question.options)
+    # options = storage.get_attribute("Option", ["question_id"], [questions[0].id])
+    
+    return render_template('take_quiz.html', quiz=quiz, questions=questions)
+
+
+@app.route('/view_decks', methods=['GET'])
+def view_decks():
+    flashcards = Deck.query.all()
     return render_template('view_flashcards.html', flashcards=flashcards)
+
+
 
 
 @app.route('/sign_up', methods=['GET', 'POST'])
