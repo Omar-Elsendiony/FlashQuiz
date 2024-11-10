@@ -158,11 +158,11 @@ def view_quiz():
     return render_template('create_quiz.html')
 
 
-@app.route('/take-quiz/<quiz_id>', methods=['GET'])
+@app.route('/take_quiz/<quiz_id>', methods=['GET'])
 def take_quiz(quiz_id):
     quiz = storage.get_attribute("Quiz", ["id"], [quiz_id])[0]
     questions = storage.get_attribute("Question", ["quiz_id"], [quiz.id])
-    options = []
+    # options = []
     for question in questions:
         question.options = storage.get_attribute("Option", ["question_id"], [question.id])
         # options.append(question.options)
@@ -170,11 +170,11 @@ def take_quiz(quiz_id):
     
     return render_template('take_quiz.html', quiz=quiz, questions=questions)
 
-@app.route('/submit-quiz/<quiz_id>', methods=['POST'])
+@app.route('/submit_quiz/<quiz_id>', methods=['POST'])
 def submit_quiz(quiz_id):
     try:
         # Get the quiz
-        quiz = storage.get_attribute("Quiz", ["id"], [quiz_id])
+        quiz = storage.get_attribute("Quiz", ["id"], [quiz_id])[0]
         questions = storage.get_attribute("Question", ["quiz_id"], [quiz_id])
         # Get current user
         current_user_id = current_user.get_id()  # Adjust based on your auth system
@@ -197,7 +197,7 @@ def submit_quiz(quiz_id):
         correct_answers = 0
         question_results = []
 
-        for question in quiz.questions:
+        for question in questions:
             submitted_answer = data.get(str(question.id))
             if submitted_answer is None:
                 return jsonify({
@@ -206,8 +206,13 @@ def submit_quiz(quiz_id):
                 }), 400
 
             # Check if answer is correct
-            is_correct = False
-            if question.type == 'true-false':
+            options = storage.get_attribute("Option", ["question_id"], [question.id])
+            for option in options:
+                if option.is_correct:
+                    question.correct_answer = option.text
+                    break
+            
+            if question.question_type == 'true-false':
                 is_correct = str(submitted_answer).lower() == str(question.correct_answer).lower()
             else:
                 is_correct = str(submitted_answer) == str(question.correct_answer)
@@ -231,7 +236,6 @@ def submit_quiz(quiz_id):
             quiz_id=quiz.id,
             user_id=current_user_id,
             score=score_percentage,
-            completed_at=datetime.utcnow(),
             total_questions=total_questions,
             correct_answers=correct_answers
         )
@@ -247,35 +251,6 @@ def submit_quiz(quiz_id):
                 is_correct=result['is_correct']
             )
             db.new(response)
-
-        # # Update user statistics
-        # user_stats = UserQuizStats.query.filter_by(
-        #     user_id=current_user_id,
-        #     quiz_id=quiz.id
-        # ).first()
-
-        # if user_stats:
-        #     # Update existing stats
-        #     user_stats.attempts_count += 1
-        #     user_stats.total_score += score_percentage
-        #     user_stats.average_score = user_stats.total_score / user_stats.attempts_count
-        #     if score_percentage > user_stats.highest_score:
-        #         user_stats.highest_score = score_percentage
-        #         user_stats.best_attempt_id = attempt.id
-        # else:
-        #     # Create new stats record
-        #     user_stats = UserQuizStats(
-        #         user_id=current_user_id,
-        #         quiz_id=quiz.id,
-        #         attempts_count=1,
-        #         total_score=score_percentage,
-        #         average_score=score_percentage,
-        #         highest_score=score_percentage,
-        #         best_attempt_id=attempt.id
-        #     )
-        #     db.session.add(user_stats)
-
-
 
         # Commit all changes
         db.save()
@@ -296,6 +271,7 @@ def submit_quiz(quiz_id):
             'message': 'An error occurred while submitting the quiz'
         }), 500
 
+
 @app.route('/quiz_results/<attempt_id>', methods=['GET'])
 def view_quiz_attempts(attempt_id):
     attempt = QuizAttempt.query.get(attempt_id)
@@ -315,7 +291,13 @@ def view_quiz_attempts(attempt_id):
 
     quiz = Quiz.query.get(attempt.quiz_id)
     responses = QuizResponse.query.filter_by(attempt_id=attempt_id).all()
-    questions = {response.question_id: response for response in responses}
+    questions = dict()
+    for response in responses:
+        question = Question.query.get(response.question_id)
+        question.options = Option.query.filter_by(question_id=question.id).all()
+        # questions = storage.get_attribute("Question", ["quiz_id"], [quiz_id])
+        response.question = question
+        questions[response.id] = response
     
     # For success case, render the template as before
     return render_template('quiz_results.html', quiz=quiz, attempt=attempt, questions=questions)

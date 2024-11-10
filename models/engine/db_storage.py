@@ -15,11 +15,14 @@ from models.question import Question
 from models.flashcard import Flashcard
 from models.category import Category
 from models.user import User
+from models.quiz_attempt import QuizAttempt
+from models.quiz_response import QuizResponse
 
 ##########################################################################################
 
 classes = {"BaseModel": BaseModel, "User": User, "Question": Question,
-           "Quiz": Quiz, "Option": Option, "Flashcard": Flashcard, "Category": Category}
+        "Quiz": Quiz, "Option": Option, "Flashcard": Flashcard, "Category": Category,
+        "QuizAttempt": QuizAttempt, "QuizResponse": QuizResponse}
 
 
 
@@ -39,15 +42,15 @@ class DBStorage:
         FLASH_QUIZ_MYSQL_PWD='flash_quiz_dev_pwd'
         FLASH_QUIZ_MYSQL_HOST='localhost'
         FLASH_QUIZ_MYSQL_DB='flash_quiz_dev_db'
-        FLASH_QUIZ_TYPE_STORAGE='db'
-        FLASH_QUIZ_API_HOST='localhost'
+        # FLASH_QUIZ_TYPE_STORAGE='db'
+        # FLASH_QUIZ_API_HOST='localhost'
         ############################################################################################################
         FLASH_QUIZ_ENV = 'dev'
         self.__engine = create_engine('mysql+mysqldb://{}:{}@{}/{}'.
-                                      format(FLASH_QUIZ_MYSQL_USER,
-                                             FLASH_QUIZ_MYSQL_PWD,
-                                             FLASH_QUIZ_MYSQL_HOST,
-                                             FLASH_QUIZ_MYSQL_DB))
+                                    format(FLASH_QUIZ_MYSQL_USER,
+                                            FLASH_QUIZ_MYSQL_PWD,
+                                            FLASH_QUIZ_MYSQL_HOST,
+                                            FLASH_QUIZ_MYSQL_DB))
         if FLASH_QUIZ_ENV == "test":
             Base.metadata.drop_all(self.__engine)
 
@@ -154,7 +157,7 @@ class DBStorage:
             result = result.limit(limit)
         result = result.all()
         return result
-                
+
     def paginate(self, cls, page, per_page):
         theClass = classes[cls]
         # result = self.__session.query(theClass).paginate(page,per_page,error_out=False)
@@ -162,4 +165,3 @@ class DBStorage:
         # print(result)
         result = result.all()
         return result
-    
