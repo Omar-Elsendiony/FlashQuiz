@@ -6,9 +6,10 @@ from sqlalchemy import Column, String, ForeignKey, Integer, Text, Table
 from sqlalchemy.orm import relationship
 
 # Association table for deck-flashcard relationship
-deck_flashcard = Table('deck_flashcard', Base.metadata,
-    Column('deck_id', String(60), ForeignKey('deck.id'), primary_key=True),
-    Column('flashcard_id', String(60), ForeignKey('flashcard.id'), primary_key=True)
+deck_flashcard = Table('deck_flashcard',
+                    Base.metadata,
+                Column('deck_id', String(60), ForeignKey('deck.id'), primary_key=True),
+                Column('flashcard_id', String(60), ForeignKey('flashcard.id'), primary_key=True)
 )
 
 class Deck(BaseModel, Base):
@@ -22,11 +23,11 @@ class Deck(BaseModel, Base):
 
     # Relationships
     creator_id = Column(String(60), ForeignKey('user.id'), nullable=False)
-    creator = relationship('User', backref='decks_created')
+    # creator = relationship('User', backref='decks_created')
     
     category_id = Column(String(60), ForeignKey('category.id'), nullable=False)
     category = relationship('Category', backref='decks')
-    
+
     # Many-to-many relationship with flashcards
     flashcards = relationship('Flashcard', 
                             secondary=deck_flashcard,

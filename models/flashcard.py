@@ -19,6 +19,7 @@ class Flashcard(BaseModel, Base):
     # category = relationship('Category', backref='flashcards')
     
     # Many-to-many relationship with decks
+    deck_id = Column(String(60), ForeignKey('deck.id'), nullable=False)
     decks = relationship('Deck',
                         secondary='deck_flashcard',
                         back_populates='flashcards')

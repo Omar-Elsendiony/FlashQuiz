@@ -1,5 +1,8 @@
 #!/usr/bin/python3
 """ Flask Application """
+####################### Models imports ##################################################
+from hashlib import md5
+from models import db
 from models import storage
 from models.user import User
 from models.base_model import BaseModel
@@ -10,7 +13,7 @@ from models.question import Question
 from models.option import Option
 from models.quiz_attempt import QuizAttempt
 from models.quiz_response import QuizResponse
-# from models.user_quiz_stats import UserQuizStats
+from models.deck import Deck
 
 
 #################### flask imports ###########################################################
@@ -21,28 +24,13 @@ from flask_cors import CORS
 # from flasgger import Swagger
 # from flasgger.utils import swag_from
 from flask_session import Session
-####################### Models imports ##################################################
-from models.base_model import BaseModel
-
-from hashlib import md5
-
 from flask import Flask, render_template, request, redirect, url_for, flash
-from models import db
-from models.category import Category
-from models.quiz import Quiz
-from models.question import Question
-from models.option import Option
-from models.user import User
-
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, logout_user, login_required, current_user, LoginManager
-##########################################################################################
 
-classes = {"BaseModel": BaseModel, "User": User}
-
+################ Flask configuration ################################################
 
 app = Flask(__name__ , static_url_path='')
-
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 # app.register_blueprint(app_views)
 # cors = CORS(app, resources={r"/*": {"origins": "0.0.0.0"}})
@@ -86,7 +74,7 @@ app.config["SESSION_TYPE"] = "filesystem"
 
 # Swagger(app)
 Session(app)
-
+#######################################################################################
 
 @app.route('/', strict_slashes=False)
 @app.route('/index', strict_slashes=False)
@@ -303,41 +291,45 @@ def view_quiz_attempts(attempt_id):
     return render_template('quiz_results.html', quiz=quiz, attempt=attempt, questions=questions)
 
 
-@app.route('/create_decks', methods=['GET', 'POST'])
-def create_decks():
+@app.route('/create_deck', methods=['GET', 'POST'])
+def create_deck():
     if request.method == 'POST':
-        category_id = request.form['quiz-category']
-        question = request.form['question']
-        answer = request.form['answer']
+        category_id = request.form['category_id']
+        name = request.form['name']
+        description = request.form['description']
+        flashcards = request.form.getlist('flashcards')
+        flashcards = json.loads(flashcards)
+
+        deck = Deck(creator_id = current_user, category_id=category_id, name=name, description=description)
+        db.new(deck)
         
-        flashcard = Flashcard(question=question, answer=answer, creator=current_user)
-        db.session.add(flashcard)
+        for flashcard in flashcards:
+            front = flashcard['front']
+            back = flashcard['back']
+            flashcard = Flashcard(front=front, back=back, deck_id=deck.id)
+            db.new(flashcard)
+
         db.session.commit()
-        flash('Flashcard created successfully!', 'success')
-        return redirect(url_for('view_flashcards'))
-    
+        return redirect(url_for('view_decks'))
+
     categories = Category.query.all()
 
-    return render_template('create_flashcards.html', categories=categories)
+    return render_template('create_deck.html', categories=categories)
 
 
-@app.route('/study_deck/<quiz_id>', methods=['GET'])
-def take_quiz(quiz_id):
-    quiz = storage.get_attribute("Quiz", ["id"], [quiz_id])[0]
-    questions = storage.get_attribute("Question", ["quiz_id"], [quiz.id])
-    # options = []
-    for question in questions:
-        question.options = storage.get_attribute("Option", ["question_id"], [question.id])
-        # options.append(question.options)
-    # options = storage.get_attribute("Option", ["question_id"], [questions[0].id])
-    
-    return render_template('take_quiz.html', quiz=quiz, questions=questions)
+@app.route('/study_deck/<deck_id>', methods=['GET'])
+def study_deck(deck_id):
+    deck = storage.get_attribute("Deck", ["id"], [deck_id])[0]
+    # questions = storage.get_attribute("Question", ["quiz_id"], [quiz.id])
+    # for question in questions:
+    #     question.options = storage.get_attribute("Option", ["question_id"], [question.id])
+    # return render_template('take_quiz.html', quiz=quiz, questions=questions)
 
 
 @app.route('/view_decks', methods=['GET'])
 def view_decks():
-    flashcards = Deck.query.all()
-    return render_template('view_flashcards.html', flashcards=flashcards)
+    decks = Deck.query.all()
+    return render_template('view_decks.html', decks=decks)
 
 
 

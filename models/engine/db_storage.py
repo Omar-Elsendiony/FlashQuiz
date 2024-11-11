@@ -17,12 +17,12 @@ from models.category import Category
 from models.user import User
 from models.quiz_attempt import QuizAttempt
 from models.quiz_response import QuizResponse
-
+from models.deck import Deck
 ##########################################################################################
 
 classes = {"BaseModel": BaseModel, "User": User, "Question": Question,
         "Quiz": Quiz, "Option": Option, "Flashcard": Flashcard, "Category": Category,
-        "QuizAttempt": QuizAttempt, "QuizResponse": QuizResponse}
+        "QuizAttempt": QuizAttempt, "QuizResponse": QuizResponse, "Deck": Deck}
 
 
 

@@ -203,6 +203,7 @@
         footer{
             background-color: #1e4077;
         }
+
     </style>
     {% block head %}{% endblock %}
 
@@ -241,11 +242,11 @@
                         <a href="#" class="menu-icons text-gray-600 hover:text-gray-900">Flashcards</a>
                         <div class="desktop-submenu">
                             {% if current_user.is_authenticated %}
-                            <a href="{{ url_for('create_flashcards') }}">Create Flashcards</a>
+                            <a href="{{ url_for('create_deck') }}">Create Flashcards Deck</a>
                             {% else %}
-                            <a href="{{ url_for('login') }}">Create Flashcards</a>
+                            <a href="{{ url_for('login') }}">Create Flashcards Deck</a>
                             {% endif %}
-                            <a href="{{ url_for('view_flashcards') }}">View Flashcards</a>
+                            <a href="{{ url_for('view_decks') }}">View Flashcards</a>
                         </div>
                     </div>
                     <div class="menu-item relative">
@@ -283,11 +284,11 @@
                             <a href="#" class="text-gray-600 hover:text-gray-900">Flashcards</a>
                             <ul class="menu-sub-list">
                                 {% if current_user.is_authenticated %}
-                                <li><a href="{{ url_for('create_flashcards') }}" class="text-gray-600 hover:text-gray-900">Create Flashcards</a></li>
+                                <li><a href="{{ url_for('create_deck') }}" class="text-gray-600 hover:text-gray-900">Create Flashcards</a></li>
                                 {% else %}
                                 <li><a href="{{ url_for('login') }}" class="text-gray-600 hover:text-gray-900">Create Flashcards</a></li>
                                 {% endif %}
-                                <li><a href="{{ url_for('view_flashcards') }}" class="text-gray-600 hover:text-gray-900">View Flashcards</a></li>
+                                <li><a href="{{ url_for('view_decks') }}" class="text-gray-600 hover:text-gray-900">View Flashcards</a></li>
                             </ul>
                         </li>
                         {% if current_user.is_authenticated %}

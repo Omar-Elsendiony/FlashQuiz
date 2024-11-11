@@ -15,15 +15,15 @@ class User(BaseModel, Base, UserMixin):
     password = Column(String(128))
     
     quizzes = relationship('Quiz', backref='creator-quiz')
-    flashcards = relationship('Flashcard', backref='creator-flashcard')
+    decks = relationship('Deck', backref='creator-deck')
     quiz_attempts = relationship('QuizAttempt', back_populates='user')
 
     favorited_quizzes = relationship('Quiz', 
                                     secondary='user_favorite_quizzes', 
                                     back_populates='favorited_by')
     
-    favorited_flashcards = relationship('Flashcard', 
-                                        secondary='user_favorite_flashcards', 
+    favorited_decks = relationship('Deck', 
+                                        secondary='user_favorite_decks', 
                                         back_populates='favorited_by')
 
     def is_authenticated(self):
@@ -51,9 +51,9 @@ user_favorite_quizzes = Table('user_favorite_quizzes',
     Column('quiz_id', String(60), ForeignKey('quiz.id'), primary_key=True)
 )
 
-user_favorite_flashcards = Table('user_favorite_flashcards',
+user_favorite_decks = Table('user_favorite_decks',
                                 Base.metadata,
     Column('user_id', String(60), ForeignKey('user.id'), primary_key=True),
-    Column('flashcard_id', String(60), ForeignKey('flashcard.id'), primary_key=True)
+    Column('deck_id', String(60), ForeignKey('deck.id'), primary_key=True)
 )
 

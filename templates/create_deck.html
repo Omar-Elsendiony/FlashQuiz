@@ -75,7 +75,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container my-5">
+<div class="container my-1 bg-gradient-to-br from-indigo-50 to-purple-50">
     <h1 class="mb-4 display-5 fw-bold">Create New Deck</h1>
     
     <form id="createDeckForm" action="{{ url_for('create_deck') }}" method="POST">
@@ -183,9 +183,66 @@ function updatePreview(index, side) {
     preview.textContent = input.value;
 }
 
-// Add the first flashcard automatically
 document.addEventListener('DOMContentLoaded', function() {
+    // Add the first flashcard automatically
     addFlashcard();
+    
+    // Add form submission handler
+    const form = document.getElementById('createDeckForm');
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData();
+        
+        // Add deck details
+        formData.append('name', document.getElementById('deckName').value);
+        formData.append('description', document.getElementById('deckDescription').value);
+        formData.append('category_id', document.getElementById('category').value);
+        
+        // Collect all flashcards
+        const flashcards = [];
+        const flashcardForms = document.querySelectorAll('.flashcard-form');
+        
+        flashcardForms.forEach((flashcardForm, index) => {
+            const front = flashcardForm.querySelector(`textarea[name="flashcards[${index}][front]"]`).value;
+            const back = flashcardForm.querySelector(`textarea[name="flashcards[${index}][back]"]`).value;
+            
+            if (front.trim() && back.trim()) {  // Only add if both front and back have content
+                flashcards.push({
+                    front: front,
+                    back: back
+                });
+            }
+        });
+        
+        // Add flashcards as JSON string
+        formData.append('flashcards', JSON.stringify(flashcards));
+        
+        // Submit the form
+        fetch(form.action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Handle successful response
+            if (data.success) {
+                // Redirect to the deck view page or show success message
+                window.location.href = data.redirect_url || '/decks';
+            } else {
+                alert(data.message || 'Error creating deck');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error creating deck. Please try again.');
+        });
+    });
 });
 </script>
 
