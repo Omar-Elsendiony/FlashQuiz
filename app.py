@@ -144,9 +144,9 @@ def view_quizzes():
     return render_template('view_quizzes.html', quizzes=quizzes)
 
 
-@app.route('/view_quiz/<quiz_id>', methods=['GET'])
-def view_quiz():
-    return render_template('create_quiz.html')
+# @app.route('/view_quiz/<quiz_id>', methods=['GET'])
+# def view_quiz():
+#     return render_template('create_quiz.html')
 
 
 @app.route('/take_quiz/<quiz_id>', methods=['GET'])
@@ -297,22 +297,29 @@ def view_quiz_attempts(attempt_id):
 @app.route('/create_deck', methods=['GET', 'POST'])
 def create_deck():
     if request.method == 'POST':
+        
+        if not current_user:
+            return jsonify({
+                'success': False,
+                'message': 'You must be logged in to be able to create a deck'
+            }), 400
+        
         category_id = request.form['category_id']
         name = request.form['name']
         description = request.form['description']
         flashcards = request.form.getlist('flashcards')
-        flashcards = json.loads(flashcards)
+        flashcards = json.loads(flashcards[0])
 
-        deck = Deck(creator_id = current_user, category_id=category_id, name=name, description=description)
+        deck = Deck(creator_id = current_user.get_id(), category_id=category_id, name=name, description=description)
         db.new(deck)
-        
+
         for flashcard in flashcards:
             front = flashcard['front']
             back = flashcard['back']
             flashcard = Flashcard(front=front, back=back, deck_id=deck.id)
             db.new(flashcard)
 
-        db.session.commit()
+        db.save()
         return redirect(url_for('view_decks'))
 
     categories = Category.query.all()
@@ -323,17 +330,17 @@ def create_deck():
 @app.route('/study_deck/<deck_id>', methods=['GET'])
 def study_deck(deck_id):
     deck = storage.get_attribute("Deck", ["id"], [deck_id])[0]
-    # questions = storage.get_attribute("Question", ["quiz_id"], [quiz.id])
-    # for question in questions:
-    #     question.options = storage.get_attribute("Option", ["question_id"], [question.id])
-    # return render_template('take_quiz.html', quiz=quiz, questions=questions)
+    flashcards = storage.get_attribute("Flashcard", ["deck_id"], [deck.id])
+    return render_template('study_deck.html', deck=deck, flashcards=flashcards)
 
 
 @app.route('/view_decks', methods=['GET'])
 def view_decks():
     decks = Deck.query.all()
+    for deck in decks:
+        creatorDeck = storage.get_attribute("User", ["id"], [deck.creator_id])
+        deck.creator = creatorDeck[0]
     return render_template('view_decks.html', decks=decks)
-
 
 
 
@@ -425,12 +432,6 @@ def login():
                 'message': 'Password is wrong'
             })
         
-        # if not check_password_hash(user.password_hash, password):
-        #     return jsonify({
-        #         'success': False,
-        #         'message': 'Password is wrong'
-        #     })
-        
         login_user(user, remember=remember)
         next_page = request.args.get('next')
         redirect_url = next_page if next_page else url_for('index')
@@ -445,178 +446,179 @@ def login():
 @login_required
 def logout():
     logout_user()
-    flash('You have been logged out.', 'success')
+    # flash('You have been logged out.', 'success')
     return redirect(url_for('index'))
 
 
 
-import secrets
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from datetime import datetime, timedelta
-import re
-# Simulated database (replace with actual database in production)
-password_reset_tokens = {}
-def validate_email(email):
-    """Basic email validation"""
-    email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    return re.match(email_regex, email) is not None
+# import secrets
+# import smtplib
+# from email.mime.text import MIMEText
+# from email.mime.multipart import MIMEMultipart
+# from datetime import datetime, timedelta
+# import re
+# # Simulated database (replace with actual database in production)
+# password_reset_tokens = {}
+# def validate_email(email):
+#     """Basic email validation"""
+#     email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+#     return re.match(email_regex, email) is not None
 
-def validate_password(password):
-    """Basic password validation"""
-    # At least 8 characters, one uppercase, one lowercase, one number
-    return (len(password) >= 8 and 
-            any(c.isupper() for c in password) and 
-            any(c.islower() for c in password) and 
-            any(c.isdigit() for c in password))
-    
-def generate_reset_token(email):
-    """
-    Generate a unique password reset token for the given email
-    Token expires in 1 hour
-    """
-    # Generate a secure random token
-    token = secrets.token_urlsafe(32)
-    
-    # Store token with expiration time
-    password_reset_tokens[email] = {
-        'token': token,
-        'expires_at': datetime.now() + timedelta(hours=1)
-    }
-    
-    return token
+# def validate_password(password):
+#     """Basic password validation"""
+#     # At least 8 characters, one uppercase, one lowercase, one number
+#     return (len(password) >= 8 and 
+#             any(c.isupper() for c in password) and 
+#             any(c.islower() for c in password) and 
+#             any(c.isdigit() for c in password))
 
-def send_reset_email(email, reset_token):
-    """
-    Send password reset email with reset link
-    Note: Replace with your actual email configuration
-    """
-    try:
-        # Email configuration (use environment variables in production)
-        sender_email = "your_app_email@example.com"
-        sender_password = "your_app_email_password"
-        
-        # Create message
-        message = MIMEMultipart()
-        message['From'] = sender_email
-        message['To'] = email
-        message['Subject'] = "Password Reset Request"
-        
-        # Create reset link 
-        reset_link = f"http://yourdomain.com/reset-password?token={reset_token}"
-        
-        # Email body
-        body = f"""
-        You have requested a password reset for your account.
-        
-        Click the link below to reset your password:
-        {reset_link}
-        
-        This link will expire in 1 hour.
-        
-        If you did not request this reset, please ignore this email.
-        """
-        
-        message.attach(MIMEText(body, 'plain'))
-        
-        # Send email
-        with smtplib.SMTP('smtp.gmail.com', 587) as server:
-            server.starttls()
-            server.login(sender_email, sender_password)
-            server.send_message(message)
-        
-        return True
-    except Exception as e:
-        # Log the error in a real application
-        print(f"Email sending failed: {e}")
-        return False
 
-@app.route('/reset-password', methods=['GET', 'POST'])
-def reset_password():
-    """
-    Handle password reset token verification and password reset
-    """
-    if request.method == 'GET':
-        # Verify reset token from URL
-        token = request.args.get('token')
-        
-        # Find email associated with this token
-        reset_email = None
-        for email, token_info in password_reset_tokens.items():
-            if token_info['token'] == token:
-                # Check if token is still valid
-                if token_info['expires_at'] > datetime.now():
-                    reset_email = email
-                    break
-        
-        if reset_email:
-            # Render password reset form
-            return render_template('reset_password.html', email=reset_email)
-        else:
-            flash('Invalid or expired reset token', 'error')
-            return redirect(url_for('forgot_password'))
+# def generate_reset_token(email):
+#     """
+#     Generate a unique password reset token for the given email
+#     Token expires in 1 hour
+#     """
+#     # Generate a secure random token
+#     token = secrets.token_urlsafe(32)
     
-    elif request.method == 'POST':
-        # Process password reset form submission
-        email = request.form.get('email')
-        new_password = request.form.get('new_password')
-        confirm_password = request.form.get('confirm_password')
-        
-        # Validate inputs
-        if not new_password or not confirm_password:
-            flash('Please fill in all fields', 'error')
-            return render_template('reset_password.html', email=email)
-        
-        if new_password != confirm_password:
-            flash('Passwords do not match', 'error')
-            return render_template('reset_password.html', email=email)
-        
-        if not validate_password(new_password):
-            flash('Password must be at least 8 characters and include uppercase, lowercase, and number', 'error')
-            return render_template('reset_password.html', email=email)
-        
-        # TODO: Update password in database
-        # This would typically involve:
-        # 1. Hash the new password
-        # 2. Update user's password in database
-        # 3. Clear any existing reset tokens for this email
-        
-        # Remove the used reset token
-        if email in password_reset_tokens:
-            del password_reset_tokens[email]
-        
-        flash('Password successfully reset', 'success')
-        return redirect(url_for('login'))
+#     # Store token with expiration time
+#     password_reset_tokens[email] = {
+#         'token': token,
+#         'expires_at': datetime.now() + timedelta(hours=1)
+#     }
+    
+#     return token
 
-@app.route('/forgot-password', methods=['GET', 'POST'])
-def forgot_password():
-    if request.method == 'POST':
-        email = request.form.get('email')
+# def send_reset_email(email, reset_token):
+#     """
+#     Send password reset email with reset link
+#     Note: Replace with your actual email configuration
+#     """
+#     try:
+#         # Email configuration (use environment variables in production)
+#         sender_email = "your_app_email@example.com"
+#         sender_password = "your_app_email_password"
         
-        # Validation
-        if not email:
-            flash('Please enter your email', 'error')
-            return render_template('forgot_password.html')
+#         # Create message
+#         message = MIMEMultipart()
+#         message['From'] = sender_email
+#         message['To'] = email
+#         message['Subject'] = "Password Reset Request"
         
-        if not validate_email(email):
-            flash('Invalid email format', 'error')
-            return render_template('forgot_password.html')
+#         # Create reset link 
+#         reset_link = f"http://yourdomain.com/reset-password?token={reset_token}"
         
-        # TODO: In a real application, check if email exists in database
+#         # Email body
+#         body = f"""
+#         You have requested a password reset for your account.
         
-        # Generate reset token
-        reset_token = generate_reset_token(email)
+#         Click the link below to reset your password:
+#         {reset_link}
         
-        # Send reset email
-        if send_reset_email(email, reset_token):
-            flash('Password reset instructions sent!', 'info')
-            return redirect(url_for('login'))
-        else:
-            flash('Failed to send reset instructions. Please try again.', 'error')
-            return render_template('forgot_password.html')
+#         This link will expire in 1 hour.
+        
+#         If you did not request this reset, please ignore this email.
+#         """
+        
+#         message.attach(MIMEText(body, 'plain'))
+        
+#         # Send email
+#         with smtplib.SMTP('smtp.gmail.com', 587) as server:
+#             server.starttls()
+#             server.login(sender_email, sender_password)
+#             server.send_message(message)
+        
+#         return True
+#     except Exception as e:
+#         # Log the error in a real application
+#         print(f"Email sending failed: {e}")
+#         return False
+
+# @app.route('/reset-password', methods=['GET', 'POST'])
+# def reset_password():
+#     """
+#     Handle password reset token verification and password reset
+#     """
+#     if request.method == 'GET':
+#         # Verify reset token from URL
+#         token = request.args.get('token')
+        
+#         # Find email associated with this token
+#         reset_email = None
+#         for email, token_info in password_reset_tokens.items():
+#             if token_info['token'] == token:
+#                 # Check if token is still valid
+#                 if token_info['expires_at'] > datetime.now():
+#                     reset_email = email
+#                     break
+        
+#         if reset_email:
+#             # Render password reset form
+#             return render_template('reset_password.html', email=reset_email)
+#         else:
+#             flash('Invalid or expired reset token', 'error')
+#             return redirect(url_for('forgot_password'))
     
-    return render_template('forgot_password.html')
+#     elif request.method == 'POST':
+#         # Process password reset form submission
+#         email = request.form.get('email')
+#         new_password = request.form.get('new_password')
+#         confirm_password = request.form.get('confirm_password')
+        
+#         # Validate inputs
+#         if not new_password or not confirm_password:
+#             flash('Please fill in all fields', 'error')
+#             return render_template('reset_password.html', email=email)
+        
+#         if new_password != confirm_password:
+#             flash('Passwords do not match', 'error')
+#             return render_template('reset_password.html', email=email)
+        
+#         if not validate_password(new_password):
+#             flash('Password must be at least 8 characters and include uppercase, lowercase, and number', 'error')
+#             return render_template('reset_password.html', email=email)
+        
+#         # TODO: Update password in database
+#         # This would typically involve:
+#         # 1. Hash the new password
+#         # 2. Update user's password in database
+#         # 3. Clear any existing reset tokens for this email
+        
+#         # Remove the used reset token
+#         if email in password_reset_tokens:
+#             del password_reset_tokens[email]
+        
+#         flash('Password successfully reset', 'success')
+#         return redirect(url_for('login'))
+
+# @app.route('/forgot-password', methods=['GET', 'POST'])
+# def forgot_password():
+#     if request.method == 'POST':
+#         email = request.form.get('email')
+        
+#         # Validation
+#         if not email:
+#             flash('Please enter your email', 'error')
+#             return render_template('forgot_password.html')
+        
+#         if not validate_email(email):
+#             flash('Invalid email format', 'error')
+#             return render_template('forgot_password.html')
+        
+#         # TODO: In a real application, check if email exists in database
+        
+#         # Generate reset token
+#         reset_token = generate_reset_token(email)
+        
+#         # Send reset email
+#         if send_reset_email(email, reset_token):
+#             flash('Password reset instructions sent!', 'info')
+#             return redirect(url_for('login'))
+#         else:
+#             flash('Failed to send reset instructions. Please try again.', 'error')
+#             return render_template('forgot_password.html')
+    
+#     return render_template('forgot_password.html')
 
 if __name__ == "__main__":
     """ Main Function """
