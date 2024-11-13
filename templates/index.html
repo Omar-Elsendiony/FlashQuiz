@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% block title %}
 <title>FlashQuiz - Learn Smarter and Faster</title>
-
 {% endblock %}
 
 {% block content %}
@@ -11,54 +10,78 @@
         <h1 class="text-4xl font-bold text-gray-900 mb-4">Learn Smarter with FlashQuiz</h1>
         <p class="text-xl text-gray-600 mb-8">Create, share, and practice with customized quizzes and flashcards</p>
         <div class="flex justify-center space-x-4">
-            <button class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">Create Quiz</button>
-            <button class="bg-white text-blue-600 px-6 py-3 rounded-lg border border-blue-600 hover:bg-blue-50">Create Flashcards</button>
+            <a href="{{ url_for('create_quiz') }}" class="bg-indigo-500 text-white px-6 py-3 rounded-lg hover:bg-indigo-600">Create Quiz</a>
+            <a href="{{ url_for('create_deck') }}" class="bg-gray-100 text-indigo-500 px-6 py-3 rounded-lg border border-indigo-500 hover:bg-gray-200">Create Flashcards</a>
+            
         </div>
     </section>
 
-    <!-- Featured Quizzes -->
+    <!-- Latest Quizzes -->
     <section class="my-12">
-        <h2 class="text-2xl font-bold mb-6">Featured Quizzes</h2>
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">Latest Quizzes</h2>
+            <a href="{{ url_for('view_quizzes') }}" class="text-blue-600 hover:text-blue-800">View All →</a>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Quiz Card 1 -->
+            {% for quiz in latest_quizzes %}
             <div class="bg-white rounded-lg shadow-md overflow-hidden">
                 <div class="p-6">
                     <div class="flex items-center justify-between mb-4">
-                        <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">Science</span>
-                        <span class="text-gray-500 text-sm">10 questions</span>
+                        <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">{{ quiz.category.name }}</span>
+                        <span class="text-gray-500 text-sm">{{ quiz.questions|length }} questions</span>
                     </div>
-                    <h3 class="text-xl font-bold mb-2">Basic Chemistry Concepts</h3>
-                    <p class="text-gray-600 mb-4">Test your knowledge of fundamental chemistry principles</p>
-                    <div class="flex items-center justify-between">
-                        <button class="text-blue-600 hover:text-blue-800">Start Quiz</button>
-                        <div class="flex items-center">
-                            <i data-feather="user"></i>
-                            <span class="ml-1 text-gray-500">1.2k plays</span>
-                        </div>
+                    <h3 class="text-xl font-bold mb-2">{{ quiz.title }}</h3>
+                    <div class="flex items-center justify-between mt-4">
+                        <a href="{{ url_for('take_quiz', quiz_id=quiz.id) }}" class="text-blue-600 hover:text-blue-800">Start Quiz</a>
+                        <!-- <div class="flex items-center space-x-4">
+                            <div class="flex items-center">
+                                <i data-feather="eye"></i>
+                                <span class="ml-1 text-gray-500">{{ quiz.view_count }}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i data-feather="heart"></i>
+                                <span class="ml-1 text-gray-500">{{ quiz.favorited_by|length }}</span>
+                            </div>
+                        </div> -->
                     </div>
                 </div>
             </div>
-
-            <!-- More quiz cards would go here -->
+            {% endfor %}
         </div>
     </section>
 
-    <!-- Statistics Section -->
-    <section class="my-12 bg-white rounded-lg shadow-md p-8">
-        <h2 class="text-2xl font-bold mb-6">Platform Statistics</h2>
+    <!-- Latest Flashcard Decks -->
+    <section class="my-12">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">Latest Flashcard Decks</h2>
+            <a href="{{ url_for('view_decks') }}" class="text-blue-600 hover:text-blue-800">View All →</a>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="text-center">
-                <div class="text-3xl font-bold text-blue-600 mb-2">10,000+</div>
-                <div class="text-gray-600">Active Users</div>
+            {% for deck in latest_decks %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded">{{ deck.category.name }}</span>
+                        <span class="text-gray-500 text-sm">{{ deck.flashcards|length }} cards</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">{{ deck.name }}</h3>
+                    <p class="text-gray-600 mb-4">{{ deck.description|truncate(100) }}</p>
+                    <div class="flex items-center justify-between">
+                        <a href="{{ url_for('study_deck', deck_id=deck.id) }}" class="text-blue-600 hover:text-blue-800">Study Now</a>
+                        <!-- <div class="flex items-center space-x-4">
+                            <div class="flex items-center">
+                                <i data-feather="eye"></i>
+                                <span class="ml-1 text-gray-500">{{ deck.view_count }}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i data-feather="heart"></i>
+                                <span class="ml-1 text-gray-500">{{ deck.favorited_by|length }}</span>
+                            </div>
+                        </div> -->
+                    </div>
+                </div>
             </div>
-            <div class="text-center">
-                <div class="text-3xl font-bold text-blue-600 mb-2">50,000+</div>
-                <div class="text-gray-600">Quizzes Created</div>
-            </div>
-            <div class="text-center">
-                <div class="text-3xl font-bold text-blue-600 mb-2">100,000+</div>
-                <div class="text-gray-600">Flashcard Sets</div>
-            </div>
+            {% endfor %}
         </div>
     </section>
 </main>

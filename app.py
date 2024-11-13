@@ -82,14 +82,11 @@ Session(app)
 @app.route('/', strict_slashes=False)
 @app.route('/index', strict_slashes=False)
 def index():
-    """ Index
-    ---
-    responses:
-      200:
-        description: Index
-    """
-    # print(session.get("username"))
-    return render_template('index.html', error=None)
+    latest_quizzes = Quiz.query.order_by(Quiz.created_at.desc()).limit(3).all()
+    latest_decks = Deck.query.order_by(Deck.created_at.desc()).limit(3).all()
+    return render_template('index.html', 
+                        latest_quizzes=latest_quizzes,
+                        latest_decks=latest_decks)
 
 
 

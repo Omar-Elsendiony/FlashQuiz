@@ -5,3 +5,4 @@ flask-cors
 SQLAlchemy
 sqlalchemy
 flask_login
+gunicorn
