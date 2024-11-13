@@ -128,7 +128,7 @@ def create_quiz():
                 db.new(false_option)
         
         db.save()
-        flash('Quiz created successfully!', 'success')
+        # flash('Quiz created successfully!', 'success')
         return redirect(url_for('index'))
         # return redirect(url_for('view_quiz', quiz_id=quiz.id))
     
@@ -320,7 +320,11 @@ def create_deck():
             db.new(flashcard)
 
         db.save()
-        return redirect(url_for('view_decks'))
+        # return redirect(url_for('view_decks'))
+        return jsonify({
+            'success': True,
+            'redirect_url': url_for('view_decks')
+        })
 
     categories = Category.query.all()
 
@@ -331,6 +335,7 @@ def create_deck():
 def study_deck(deck_id):
     deck = storage.get_attribute("Deck", ["id"], [deck_id])[0]
     flashcards = storage.get_attribute("Flashcard", ["deck_id"], [deck.id])
+    print(flashcards)
     return render_template('study_deck.html', deck=deck, flashcards=flashcards)
 
 
@@ -340,6 +345,8 @@ def view_decks():
     for deck in decks:
         creatorDeck = storage.get_attribute("User", ["id"], [deck.creator_id])
         deck.creator = creatorDeck[0]
+        flashcards = storage.get_attribute("Flashcard", ["deck_id"], [decks[0].id])
+        deck.flashcards = flashcards
     return render_template('view_decks.html', decks=decks)
 
 

@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<style>
+    .flashcard {
+        perspective: 1000px;
+        height: 400px;
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        display: none;
+    }
+
+    .flashcard.active {
+        display: block;
+    }
+
+    .flashcard-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+        cursor: pointer;
+    }
+
+    .flashcard.flipped .flashcard-inner {
+        transform: rotateY(180deg);
+    }
+
+    .flashcard-front, .flashcard-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        padding: 2rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .flashcard-back {
+        transform: rotateY(180deg);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="max-w-7xl mx-auto px-4 py-8 flex flex-col justify-center items-center min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50">
+    <div class="w-full max-w-3xl">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-4xl font-bold text-indigo-600 tracking-tight">{{ deck.name }}</h1>
+            <div class="text-indigo-600">
+                <span class="font-semibold">Flashcard</span>
+                <span id="current-flashcard">1</span>/<span id="total-flashcards">{{ flashcards|length }}</span>
+            </div>
+        </div>
+
+        {% for flashcard in flashcards %}
+        <div class="flashcard active" onclick="toggleFlashcard(this)">
+            <div class="flashcard-inner">
+                <div class="flashcard-front">
+                    <h3 class="text-2xl font-semibold text-indigo-700 mb-4">{{ flashcard.front }}</h3>
+                </div>
+                <div class="flashcard-back">
+                    <h3 class="text-2xl font-semibold text-indigo-700 mb-4">{{ flashcard.back }}</h3>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="flex justify-between pt-6">
+            <button type="button" onclick="previousFlashcard()" id="prev-button" class="bg-gray-500 text-white px-6 py-3 rounded-lg font-semibold
+                        hover:bg-gray-600 transform hover:scale-105 transition-all duration-200
+                        shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                Previous
+            </button>
+
+            <button type="button" onclick="nextFlashcard()" id="next-button" class="bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold
+                        hover:bg-indigo-700 transform hover:scale-105 transition-all duration-200
+                        shadow-md hover:shadow-lg">
+                Next
+            </button>
+        </div>
+    </div>
+</main>
+
+<script>
+    let currentFlashcardIndex = 0;
+    const flashcards = document.querySelectorAll('.flashcard');
+    const totalFlashcards = flashcards.length;
+
+    function updateNavigationButtons() {
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
+        prevButton.disabled = currentFlashcardIndex === 0;
+        nextButton.disabled = currentFlashcardIndex === totalFlashcards - 1;
+        document.getElementById('current-flashcard').textContent = currentFlashcardIndex + 1;
+    }
+
+    function showFlashcard(index) {
+        flashcards.forEach((f, i) => {
+            f.classList.toggle('active', i === index);
+        });
+        updateNavigationButtons();
+    }
+
+    function nextFlashcard() {
+        if (currentFlashcardIndex < totalFlashcards - 1) {
+            currentFlashcardIndex++;
+            showFlashcard(currentFlashcardIndex);
+        }
+    }
+
+    function previousFlashcard() {
+        if (currentFlashcardIndex > 0) {
+            currentFlashcardIndex--;
+            showFlashcard(currentFlashcardIndex);
+        }
+    }
+
+    function toggleFlashcard(flashcard) {
+        flashcard.classList.toggle('flipped');
+    }
+
+    // Initialize the first flashcard
+    showFlashcard(0);
+</script>
+{% endblock %}
