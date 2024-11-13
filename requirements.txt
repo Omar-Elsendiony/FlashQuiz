@@ -1,6 +1,6 @@
-pip install Flask
-pip install flask-session
-pip install flasgger
-pip install flask_cors
-pip install SQLAlchemy
-sudo apt-get install python3-mysqldb
+Flask
+flask-session
+flasgger
+flask-cors
+SQLAlchemy
+mysqlclient
