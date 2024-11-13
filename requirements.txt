@@ -3,4 +3,5 @@ flask-session
 flasgger
 flask-cors
 SQLAlchemy
-mysqlclient
+sqlalchemy
+flask_login
