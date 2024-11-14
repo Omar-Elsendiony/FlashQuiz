@@ -295,7 +295,7 @@ def view_quiz_attempts(attempt_id):
 def create_deck():
     if request.method == 'POST':
         
-        if not current_user:
+        if not current_user.get_id():
             return jsonify({
                 'success': False,
                 'message': 'You must be logged in to be able to create a deck'
