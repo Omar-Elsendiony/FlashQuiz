@@ -84,6 +84,9 @@ Session(app)
 def index():
     latest_quizzes = Quiz.query.order_by(Quiz.created_at.desc()).limit(3).all()
     latest_decks = Deck.query.order_by(Deck.created_at.desc()).limit(3).all()
+    for latest_deck in latest_decks:
+        flashcards = storage.get_attribute("Flashcard", ["deck_id"], [latest_deck.id])
+        latest_deck.flashcards = flashcards
     return render_template('index.html', 
                         latest_quizzes=latest_quizzes,
                         latest_decks=latest_decks)

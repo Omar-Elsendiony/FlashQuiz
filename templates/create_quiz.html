@@ -81,7 +81,7 @@
                 // Redirect to index page after successful submission
                 window.location.href = '/';
             } else {
-                alert('There was an error submitting the quiz. Please try again.');
+                alert('User has to be logged in to create a quiz.');
             }
         })
         .catch(error => {
